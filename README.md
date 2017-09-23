@@ -1,7 +1,10 @@
 # Donkey Kong
 CS 319 – Object Oriented Software Engineering 
-Term Project 
+
+Term Project
+
 Instructor: Bora Güngören 
+
 Section 3 – Team E: (3E)
 
 Group Members: 
