@@ -1,5 +1,8 @@
-# DonkeyKong-Cs319
-Donkey Kong for CS319 Project.
+# Donkey Kong
+CS 319 – Object Oriented Software Engineering 
+Term Project 
+Instructor: Bora Güngören 
+Section 3 – Team E: (3E)
 
 Group Members: 
 1. Cagatay Kupheli
