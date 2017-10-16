@@ -1,0 +1,188 @@
+package donkeyKong;
+
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Scanner;
+import java.sql.Connection;
+
+public class DatabaseConnection {	
+	private static final String URL = "jdbc:mysql://127.0.0.1:3306/donkeyKong?useSSL=false";
+	private static final String USERNAME = "donkeyKong";
+	private static final String PASSWORD = "cs319";
+	
+	public static void main(String[] args) throws Exception {
+		// TODO Auto-generated method stub
+		getConnection();
+		String[][] matrixMap = getMatrix();
+		int row = getMatrixRow();
+		int col = getMatrixCol();
+		
+		for(int i = 0; i < row; i++){
+			for(int j = 0; j < col; j++){
+				System.out.print(matrixMap[i][j]);
+				System.out.print("\t");
+			}
+			System.out.print("\n");
+		}
+		
+		@SuppressWarnings("resource")
+		Scanner scan = new Scanner(System.in);
+		System.out.println("Please enter the highest score");
+		int temp = scan.nextInt();
+		
+		updateScore(temp);
+		
+		int score = getHighestScore();
+		System.out.println(score);
+	}
+	
+	public static Connection getConnection() throws Exception {
+		System.out.println("Connecting database...");
+		
+		try(Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD)){
+			System.out.println("Connection is established!");
+		} catch(SQLException e){
+			throw new IllegalStateException("Connection is not established!", e);
+		}
+		
+		return null;
+	}
+	
+	public static int getMatrixRow() throws Exception {
+		try(Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD)){
+			System.out.println("Connection is stable!");
+			
+			Statement myStmt = connection.createStatement();
+			String query = "SELECT rowLength, colLength FROM matrixlength";
+			ResultSet result = myStmt.executeQuery(query);
+			
+			int row = 0;
+			
+			while(result.next()){
+				row = Integer.parseInt(result.getString("rowLength"));
+			}
+			
+			return row;
+			
+		} catch(SQLException e){
+			throw new IllegalStateException(e);
+		}
+	}
+	
+	public static int getMatrixCol() throws Exception {
+		try(Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD)){
+			System.out.println("Connection is stable!");
+			
+			Statement myStmt = connection.createStatement();
+			String query = "SELECT rowLength, colLength FROM matrixlength";
+			ResultSet result = myStmt.executeQuery(query);
+			
+			int col = 0;
+			
+			while(result.next()){
+				col = Integer.parseInt(result.getString("colLength"));
+			}
+			
+			return col;
+			
+		} catch(SQLException e){
+			throw new IllegalStateException(e);
+		}
+	}
+	
+	public static String[][] getMatrix() throws Exception {
+		try(Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD)){
+			System.out.println("Connection is stable!");
+			
+			Statement myStmt1 = connection.createStatement();
+			String query1 = "SELECT rowLength, colLength FROM matrixlength";
+			ResultSet result1 = myStmt1.executeQuery(query1);
+			
+			int row = 0;
+			int col = 0;
+			
+			while(result1.next()){
+				row = Integer.parseInt(result1.getString("rowLength"));
+				col = Integer.parseInt(result1.getString("colLength"));
+			}
+			
+			String[][] myArray = new String[row][col];
+			for(int i = 0; i < row; i++){
+				for(int j = 0; j < col; j++){
+					
+					PreparedStatement myStmt2 = connection.prepareStatement(
+							"SELECT matrixData FROM matrix WHERE matrixRow = ? AND matrixCol = ?");
+					myStmt2.setInt(1, i);
+					myStmt2.setInt(2, j);
+					//System.out.println(myStmt2);
+					ResultSet result2 = myStmt2.executeQuery();
+					
+					String temp = "";
+					while(result2.next()){
+						temp = result2.getString("matrixData");
+					}
+					
+					myArray[i][j] = temp;
+					
+					//System.out.println(myArray[i][j]);
+				}
+			}
+			
+			return myArray;
+			
+		} catch(SQLException e){
+			throw new IllegalStateException(e);
+		}
+	}
+	
+	public static void updateScore(int newScore) throws Exception {
+		try(Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD)){
+			System.out.println("Connection is stable!");
+			
+			Statement myStmt1 = connection.createStatement();
+			String query1 = "SELECT highestScore FROM score";
+			ResultSet result1 = myStmt1.executeQuery(query1);
+			
+			int score = 0;
+			
+			while(result1.next()){
+				score = Integer.parseInt(result1.getString("highestScore"));
+			}
+			
+			if(newScore > score){
+				PreparedStatement myStmt2 = connection.prepareStatement(
+						"UPDATE score SET highestScore = ? WHERE scoreID = 1");
+				myStmt2.setInt(1, newScore);
+				
+				myStmt2.executeUpdate();
+			}
+		} catch(SQLException e){
+			throw new IllegalStateException(e);
+		}
+	}
+	
+	public static int getHighestScore() throws Exception {
+		try(Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD)){
+			System.out.println("Connection is stable!");
+			
+			Statement myStmt = connection.createStatement();
+			String query = "SELECT highestScore FROM score";
+			ResultSet result = myStmt.executeQuery(query);
+			
+			int score = 0;
+			
+			while(result.next()){
+				score = Integer.parseInt(result.getString("highestScore"));
+			}
+			
+			return score;
+			
+		} catch(SQLException e){
+			throw new IllegalStateException(e);
+		}
+	}
+
+}
