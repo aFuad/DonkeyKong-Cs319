@@ -27,4 +27,5 @@ about original Donkey Kong can be found in the following link:
 :link: http://www.donkey-kong.org/ :link:
 
 Analysis Report :white_check_mark:
+
 Design Report :white_check_mark:
