@@ -11,7 +11,7 @@ public class GameEngine {
 	 * During run time map 2D array will change because we do not want user or anyone else to change data inside our level.txt file.
 	 * Therefore I did not put any set method for MapData object, even if we want to change it we cannot.
 	 */
-	private String[][] map = new String[10][10];
+	private MyObject[][] map = new MyObject[10][10];
 	
 	 /* 
 	  * boolean gameOver
@@ -86,11 +86,19 @@ public class GameEngine {
 		this.movement = movement;
 	}
 
-	public String[][] getMap() {
-		return map;
+	public MyObject getMapObject(int x, int y) {
+		return map[x][y];
 	}
 
-	public void setMap(String[][] map) {
-		this.map = map;
+	public void setMapObject(MyObject myObject, int x, int y) {
+		map[x][y] = myObject;
+	}
+	
+	/*
+	 * This method will be initialize after we are done with Player Class which extends MyObject.
+	 * DO NOT FORGET TO CHANGE RETURN TYPE TO PLAYER AND CORRECT RETURN STATEMENT AFTER INITIALIZING PLAYER CLASS
+	 */
+	public MyObject getPlayer(){ //Player getPlayer(){
+		return null; //return player;
 	}
 }
