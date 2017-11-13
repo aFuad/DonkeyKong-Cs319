@@ -7,12 +7,13 @@ import javax.swing.border.EmptyBorder;
 
 public class MainFrame extends JFrame{
 	
-	protected static final int WIDTH = 640;
-	protected static final int HEIGHT = WIDTH / 9 * 12;
+	protected static final int WIDTH = 1000;
+	protected static final int HEIGHT = 1000;
 	private static final String TITLE = "Donkey Kong";
 	private int level = 1;
 	
 	GamePanel gamePanel;
+	MainMenu mainMenu;
 	
 	public MainFrame() throws FileNotFoundException{
 		setTitle(TITLE);
@@ -22,5 +23,8 @@ public class MainFrame extends JFrame{
 		gamePanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(gamePanel);
 		gamePanel.setLayout(null);
+		//mainMenu = new MainMenu();
+		//mainMenu.setBorder(new EmptyBorder(5, 5, 5, 5));
+		//setContentPane(mainMenu);
 	}
 }
