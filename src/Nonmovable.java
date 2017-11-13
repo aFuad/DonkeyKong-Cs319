@@ -1,5 +1,15 @@
 package source;
 
-public interface Nonmovable {
-	public boolean getPassThrough();
+import java.awt.Image;
+
+public abstract class Nonmovable extends MyObject{
+	
+	public Nonmovable(int x, int y) {
+		super(x, y);
+		// TODO Auto-generated constructor stub
+	}
+	
+	public abstract boolean getPassThrough();
+	
+	public abstract Image getImage();
 }
