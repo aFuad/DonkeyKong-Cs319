@@ -4,8 +4,8 @@ import java.awt.Image;
 
 import javax.swing.ImageIcon;
 
-public class Monkey extends MyObject implements Nonmovable{
-	private Image imageMonkey =  new ImageIcon(this.getClass().getResource("monkey.png")).getImage();
+public class Monkey extends Nonmovable{
+	private Image imageMonkey =  new ImageIcon("src/image/monkey.png").getImage(); // 100x100
 	
 	private final boolean PASS_THROUGH = false;
 	
@@ -13,20 +13,10 @@ public class Monkey extends MyObject implements Nonmovable{
 		super(x, y);
 	}
 
+	@Override
 	public boolean getPassThrough(){
+		// TODO Auto-generated method stub
 		return PASS_THROUGH;
-	}
-	
-	@Override
-	public int getX() {
-		// TODO Auto-generated method stub
-		return super.getX();
-	}
-	
-	@Override
-	public int getY() {
-		// TODO Auto-generated method stub
-		return super.getY();
 	}
 
 	public Image getImage() {
