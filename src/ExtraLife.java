@@ -4,8 +4,8 @@ import java.awt.Image;
 
 import javax.swing.ImageIcon;
 
-public class ExtraLife extends MyObject implements Nonmovable{
-	private Image imageExtraLife =  new ImageIcon(this.getClass().getResource("life.png")).getImage();
+public class ExtraLife extends Nonmovable{
+	private Image imageExtraLife =  new ImageIcon("src/image/extra life.png").getImage();
 	
 	private final boolean PASS_THROUGH = true;
 	
@@ -13,20 +13,10 @@ public class ExtraLife extends MyObject implements Nonmovable{
 		super(x, y);
 	}
 
+	@Override
 	public boolean getPassThrough(){
+		// TODO Auto-generated method stub
 		return PASS_THROUGH;
-	}
-	
-	@Override
-	public int getX() {
-		// TODO Auto-generated method stub
-		return super.getX();
-	}
-	
-	@Override
-	public int getY() {
-		// TODO Auto-generated method stub
-		return super.getY();
 	}
 
 	public Image getImage() {
