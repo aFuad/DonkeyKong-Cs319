@@ -4,8 +4,8 @@ import java.awt.Image;
 
 import javax.swing.ImageIcon;
 
-public class Oil extends MyObject implements Nonmovable{
-	private Image imageOil =  new ImageIcon(this.getClass().getResource("oil.png")).getImage();
+public class Oil extends Nonmovable{
+	private Image imageOil =  new ImageIcon("src/image/oil.png").getImage();
 	
 	private final boolean PASS_THROUGH = false;
 	
@@ -13,20 +13,10 @@ public class Oil extends MyObject implements Nonmovable{
 		super(x, y);
 	}
 
+	@Override
 	public boolean getPassThrough(){
+		// TODO Auto-generated method stub
 		return PASS_THROUGH;
-	}
-	
-	@Override
-	public int getX() {
-		// TODO Auto-generated method stub
-		return super.getX();
-	}
-	
-	@Override
-	public int getY() {
-		// TODO Auto-generated method stub
-		return super.getY();
 	}
 
 	public Image getImage() {
