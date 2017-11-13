@@ -1,11 +1,12 @@
 package source;
 
 import java.awt.Image;
+import java.awt.Rectangle;
 
 import javax.swing.ImageIcon;
 
-public class Platform extends MyObject implements Nonmovable{
-	private Image imagePlatform =  new ImageIcon(this.getClass().getResource("oil.png")).getImage();
+public class Platform extends Nonmovable{
+	private Image imagePlatform =  new ImageIcon("src/image/platform.png").getImage(); //50x50
 	
 	private final boolean PASS_THROUGH = false;
 	
@@ -15,18 +16,6 @@ public class Platform extends MyObject implements Nonmovable{
 
 	public boolean getPassThrough(){
 		return PASS_THROUGH;
-	}
-	
-	@Override
-	public int getX() {
-		// TODO Auto-generated method stub
-		return super.getX();
-	}
-	
-	@Override
-	public int getY() {
-		// TODO Auto-generated method stub
-		return super.getY();
 	}
 
 	public Image getImage() {
