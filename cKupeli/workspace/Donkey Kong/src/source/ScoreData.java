@@ -9,10 +9,10 @@ import java.util.Scanner;
 
 public class ScoreData {
 	private int score;
-	
+	private Scanner scoreScanner;
 	
 	public ScoreData() throws FileNotFoundException{
-		Scanner scoreScanner = new Scanner(new File("src/data/score.txt"));
+		scoreScanner = new Scanner(new File("src/data/score.txt"));
 		score = scoreScanner.nextInt();
 	}
 	
