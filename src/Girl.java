@@ -4,29 +4,19 @@ import java.awt.Image;
 
 import javax.swing.ImageIcon;
 
-public class Girl extends MyObject implements Nonmovable{
-	private Image imageGirl =  new ImageIcon(this.getClass().getResource("girl.png")).getImage();
+public class Girl extends Nonmovable{
+	private Image imageGirl =  new ImageIcon("src/image/girl.png").getImage(); //50x100
 	
-	private final boolean PASS_THROUGH = true;
+	private final boolean PASS_THROUGH = false;
 	
 	public Girl(int x, int y){
 		super(x, y);
 	}
 
+	@Override
 	public boolean getPassThrough(){
+		// TODO Auto-generated method stub
 		return PASS_THROUGH;
-	}
-	
-	@Override
-	public int getX() {
-		// TODO Auto-generated method stub
-		return super.getX();
-	}
-	
-	@Override
-	public int getY() {
-		// TODO Auto-generated method stub
-		return super.getY();
 	}
 
 	public Image getImage() {
