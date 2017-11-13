@@ -2,6 +2,7 @@ package source;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.io.FileNotFoundException;
 
@@ -20,7 +21,7 @@ public class GamePanel extends JPanel implements Runnable{
 		init(level);
 	}
 	
-	public void init(int level) throws FileNotFoundException{
+	private void init(int level) throws FileNotFoundException{
 		gameEngine = new GameEngine(level);
 		/*
 		 * start() generates thread for GamePanel class.
@@ -41,14 +42,16 @@ public class GamePanel extends JPanel implements Runnable{
 		while(!gameEngine.isGameOver()){ //While game is not over
 			if(gameEngine.isMovement()){ //While game is running
 				//Draw the game
+				gameEngine.sPressed(); //Gravity
 			}
 			else if(!gameEngine.isMovement()){ //While game is paused
 				//Pause menu initialization if needed
 				//Draw pause menu or go pause menu, depends on initialization
 			}
+			//gameEngine.sPressed();
 			
 			try{
-				Thread.sleep(500); //Rendering speed of the thread
+				Thread.sleep(100); //Rendering speed of the thread
 			}
 			catch (InterruptedException e){
 				// TODO Auto-generated catch block
@@ -68,11 +71,42 @@ public class GamePanel extends JPanel implements Runnable{
 	 */
 	public void paintComponent(Graphics g){
 		super.paintComponent(g);
-		
+		//setBackground(Color.BLACK);
 		//Test
-		g.fillRect(0, 0, 500, 500);
-		g.setColor(Color.BLACK);
-		g.drawString("TEST", (int)(Math.random()*(600-500)+500), (int)(Math.random()*(600-500)+500));
+		for(int y = 0; y < 15; y++){
+			for(int x = 0; x < 15; x++){
+				//Commented part below aim to test rectangles of nonmovable objects
+				if(gameEngine.getMapObject(x, y) instanceof Platform){
+					g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
+					//g.drawRect((int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMinY(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxX() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxY() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinY());
+				}
+				else if(gameEngine.getMapObject(x, y) instanceof Ladder){
+					g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
+					//g.drawRect((int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMinY(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxX() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxY() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinY());
+				}
+				else if(y < 14){ //If y = 14, then inside the if statement we check y = 15 and program gives outOfBound error
+					if(gameEngine.getMapObject(x, y) instanceof Girl && gameEngine.getMapObject(x, y + 1) instanceof Girl){ //To create girl, we need 2 blocks because monkey takes 50x100 space
+						g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
+						//g.drawRect((int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMinY(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxX() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxY() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinY());
+					}
+					else if(gameEngine.getMapObject(x, y) instanceof Oil && gameEngine.getMapObject(x, y + 1) instanceof Oil){ //To create oil, we need 2 blocks because monkey takes 50x100 space
+						g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
+						//g.drawRect((int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMinY(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxX() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxY() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinY());
+					}
+					else if(x < 14){ //If x = 14, then inside the if statement we check x = 15 and program gives outOfBound error.
+						//To create monkey, we need 4 blocks because monkey takes 100x100 space
+						if(gameEngine.getMapObject(x, y) instanceof Monkey && gameEngine.getMapObject(x + 1, y) instanceof Monkey && gameEngine.getMapObject(x, y + 1) instanceof Monkey && gameEngine.getMapObject(x + 1, y + 1) instanceof Monkey){
+							g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
+							//g.drawRect((int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMinY(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxX() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxY() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinY());
+						}
+					}
+				}
+			}
+		}
+		
+		g.drawImage(gameEngine.getPlayer().getImagePlayerRight(), gameEngine.getPlayer().getX(), gameEngine.getPlayer().getY(), this);
+		//Comment below aim to test rectangle of player
+		//g.drawRect((int)(gameEngine.getPlayer().getRectangle().getMinX()), (int)(gameEngine.getPlayer().getRectangle().getMinY()), (int)(gameEngine.getPlayer().getRectangle().getMaxX() - gameEngine.getPlayer().getRectangle().getMinX()), (int)(gameEngine.getPlayer().getRectangle().getMaxX() - gameEngine.getPlayer().getRectangle().getMinX()));
 	}
 	
 	public void initializingKeyBindings(){
@@ -138,38 +172,28 @@ public class GamePanel extends JPanel implements Runnable{
 				}
 			}
 			else if(name == "w"){
-				System.out.println("W Pressed");
 				if(gameEngine.isMovement()){ //While game is running
 					gameEngine.wPressed();
-					System.out.println("Go Up or Jump");
 				}
 			}
 			else if(name == "a"){
-				System.out.println("A Pressed");
 				if(gameEngine.isMovement()){ //While game is running
 					gameEngine.aPressed();
-					System.out.println("Go Left");
 				}
 			}
 			else if(name == "s"){
-				System.out.println("S Pressed");
 				if(gameEngine.isMovement()){ //While game is running
 					gameEngine.sPressed();
-					System.out.println("Go Down");
 				}
 			}
 			else if(name == "d"){
-				System.out.println("D Pressed");
 				if(gameEngine.isMovement()){ //While game is running
 					gameEngine.dPressed();
-					System.out.println("Go Right");
 				}
 			}
 			else if(name == "space"){
-				System.out.println("Space Pressed");
 				if(gameEngine.isMovement()){ //While game is running
 					gameEngine.spacePressed();
-					System.out.println("Strike");
 				}
 			}
 			
@@ -194,5 +218,4 @@ public class GamePanel extends JPanel implements Runnable{
 		gameEngine.setGameOver(true);
 		gameEngine.setMovement(false);
 	}
-	
 }
