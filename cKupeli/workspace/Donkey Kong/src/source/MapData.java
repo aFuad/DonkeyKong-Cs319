@@ -5,7 +5,10 @@ import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 public class MapData {
-	private String[][] map = new String[10][10]; //Borders of the game map is initialized before
+	/*
+	 * Each block is 50x50, whole frame is 750x750.
+	 */
+	private String[][] map = new String[15][15]; //Borders of the game map is initialized before
 	private Scanner levelScanner;
 	private Scanner rowScanner;
 	
@@ -39,7 +42,7 @@ public class MapData {
 					map[x][y] = "Monkey"; //M indicates monkey inside matrix
 				}
 				else if(myObjects.equals("G")){
-					map[x][y] = "Girl"; //Pr indicates Princess inside matrix
+					map[x][y] = "Girl"; //G indicates Girl inside matrix
 				}
 				else if(myObjects.equals("O")){
 					map[x][y] = "Oil"; //O indicates oil barrel which spawns fire elementals inside matrix
@@ -49,6 +52,9 @@ public class MapData {
 				}
 				else if(myObjects.equals("H")){ //Hammer is a power up
 					map[x][y] = "Hammer"; //H indicates hammer inside matrix
+				}
+				else if(myObjects.equals("J")){ //Jumpman is a power up
+					map[x][y] = "Jumpman"; //J indicates Jumpman inside matrix
 				}
 				
 				x++;
