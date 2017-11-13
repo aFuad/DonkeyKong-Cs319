@@ -1,17 +1,19 @@
 package source;
 
+import java.awt.Rectangle;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 
 public class GameEngine {
 	private int score;
-	private int life = 3;
+	private int numberOfLives = 3;
 	private int currentLevel;
 	
 	/*
 	 * During run time map 2D array will change because we do not want user or anyone else to change data inside our level.txt file.
 	 * Therefore I did not put any set method for MapData object, even if we want to change it we cannot.
 	 */
-	private MyObject[][] map = new MyObject[10][10];
+	private Nonmovable[][] map = new Nonmovable[15][15];
 	
 	 /* 
 	  * boolean gameOver
@@ -30,6 +32,18 @@ public class GameEngine {
 	 * False means game is paused
 	 */
 	private boolean movement = true;
+	
+	/*
+	 * We store map objects inside an ArrayList as well in order to use them to implement collision.
+	 * I was planning to use ArrayList for map as well, but I end up facing some technicality inside GamePanel.
+	 */
+	private ArrayList<Nonmovable> nonmovable = new ArrayList<Nonmovable>();
+	
+	/*
+	 * Player has an important role on our game. Therefore I need an object to reach Player easily.
+	 * We have not initialize player yet. Do not forget to do it.
+	 */
+	private Player player;
 
 	//File Management Components
 	private ScoreData myScoreData;
@@ -38,6 +52,49 @@ public class GameEngine {
 	public GameEngine(int level) throws FileNotFoundException{
 		myScoreData = new ScoreData();
 		myMapData = new MapData(level);
+		loadMap();
+	}
+	
+	//Load the map as objects
+	private void loadMap(){
+		for(int y = 0; y < 15; y++){
+			for(int x = 0; x < 15; x++){
+				if(myMapData.getMapData(x, y) == "Space"){
+					map[x][y] = null;
+				}
+				else if(myMapData.getMapData(x, y) == "Platform"){
+					map[x][y] = new Platform(x, y);
+					nonmovable.add(getMapObject(x, y));
+				}
+				else if(myMapData.getMapData(x, y) == "Ladder"){
+					map[x][y] = new Ladder(x, y);
+					nonmovable.add(getMapObject(x, y));
+				}
+				else if(myMapData.getMapData(x, y) == "Monkey"){
+					map[x][y] = new Monkey(x, y);
+					nonmovable.add(getMapObject(x, y));
+				}
+				else if(myMapData.getMapData(x, y) == "Girl"){
+					map[x][y] = new Girl(x, y);
+					nonmovable.add(getMapObject(x, y));
+				}
+				else if(myMapData.getMapData(x, y) == "Oil"){
+					map[x][y] = new Oil(x, y);
+					nonmovable.add(getMapObject(x, y));
+				}
+				else if(myMapData.getMapData(x, y) == "ExtraLife"){
+					map[x][y] = new ExtraLife(x, y);
+					nonmovable.add(getMapObject(x, y));
+				}
+				else if(myMapData.getMapData(x, y) == "Hammer"){
+					map[x][y] = new Hammer(x, y);
+					nonmovable.add(getMapObject(x, y));
+				}
+				else if(myMapData.getMapData(x, y) == "Jumpman"){
+					player = new Player(x, y);
+				}
+			}
+		}
 	}
 
 	public int getScore() {
@@ -48,12 +105,12 @@ public class GameEngine {
 		this.score = score;
 	}
 
-	public int getLife() {
-		return life;
+	public int getNumberOfLives() {
+		return numberOfLives;
 	}
 
-	public void setLife(int life) {
-		this.life = life;
+	public void setNumberOfLives(int numberOfLives) {
+		this.numberOfLives = numberOfLives;
 	}
 
 	public boolean isGameOver() {
@@ -86,19 +143,85 @@ public class GameEngine {
 		this.movement = movement;
 	}
 
-	public MyObject getMapObject(int x, int y) {
+	public Nonmovable getMapObject(int x, int y) {
 		return map[x][y];
 	}
-
-	public void setMapObject(MyObject myObject, int x, int y) {
-		map[x][y] = myObject;
+	
+	public Player getPlayer(){
+		return player;
 	}
 	
 	/*
-	 * This method will be initialize after we are done with Player Class which extends MyObject.
-	 * DO NOT FORGET TO CHANGE RETURN TYPE TO PLAYER AND CORRECT RETURN STATEMENT AFTER INITIALIZING PLAYER CLASS
+	 * We coded in a way that GamePanel Class reach wPressed(), aPressed(), sPressed(), dPressed() and spacePressed() if and only if game was running.
+	 * Therefore we do not need to worry about it.
 	 */
-	public MyObject getPlayer(){ //Player getPlayer(){
-		return null; //return player;
+	public void wPressed(){
+		boolean collusion = false;
+		for(int i = 0; i < nonmovable.size(); i++){
+			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY() - 5,
+					player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
+					&& !nonmovable.get(i).getPassThrough()){
+				collusion = true;
+			}
+		}
+		
+		if(!collusion){
+			player.goUp();
+		}
+	}
+	
+	public void aPressed(){
+		boolean collusion = false;
+		for(int i = 0; i < nonmovable.size(); i++){
+			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX() - 5, player.getRectangle().getMinY(),
+					player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
+					&& !nonmovable.get(i).getPassThrough()){
+				collusion = true;
+			}
+		}
+		
+		if(!collusion){
+			player.goLeft();
+		}
+	}
+	
+	public void sPressed(){
+		boolean collusion = false;
+		for(int i = 0; i < nonmovable.size(); i++){
+			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY() + 5,
+					player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
+					&& !nonmovable.get(i).getPassThrough()){
+				collusion = true;
+			}
+		}
+		
+		if(!collusion){
+			player.goDown();
+		}
+	}
+	
+	public void dPressed(){
+		boolean collusion = false;
+		for(int i = 0; i < nonmovable.size(); i++){
+			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX() + 5, player.getRectangle().getMinY(),
+					player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
+					&& !nonmovable.get(i).getPassThrough()){
+				collusion = true;
+			}
+		}
+		
+		if(!collusion){
+			player.goRight();
+		}
+	}
+	
+	public void spacePressed(){
+		/*
+		 * Player can use space button if and only if he/she has hammer buff.
+		 * Therefore we need an if statement to decide player can use strike action
+		 * if(getPlayer().canStrike()){
+		 *  strike();
+		 * }
+		 */
 	}
 }
