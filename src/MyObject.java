@@ -1,12 +1,20 @@
 package source;
 
+import java.awt.Rectangle;
+
 public abstract class MyObject{
 	private int x;
 	private int y;
 	
+	private final static int SIDES = 50;
+	
+	private Rectangle rectangle;
+	
 	public MyObject(int x, int y){
-		this.x = x;
-		this.y = y;
+		this.x = x * SIDES;
+		this.y = y * SIDES;
+		
+		rectangle = new Rectangle(x * SIDES, y * SIDES, SIDES, SIDES);
 	}
 	
 	public void setX(int x){
@@ -23,5 +31,13 @@ public abstract class MyObject{
 	
 	public int getY(){
 		return y;
+	}
+	
+	public Rectangle getRectangle(){
+		return rectangle;
+	}
+	
+	public void relocateRectangle(int x, int y){
+		rectangle.setLocation(x, y);
 	}
 }
