@@ -13,7 +13,7 @@ public class GameEngine {
 	 * During run time map 2D array will change because we do not want user or anyone else to change data inside our level.txt file.
 	 * Therefore I did not put any set method for MapData object, even if we want to change it we cannot.
 	 */
-	private Nonmovable[][] map = new Nonmovable[15][15];
+	private Nonmovable[][] map = new Nonmovable[20][20];
 	
 	 /* 
 	  * boolean gameOver
