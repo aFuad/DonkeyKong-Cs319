@@ -35,7 +35,7 @@ public class GamePanel extends JPanel implements Runnable{
 		 */
 		initializingKeyBindings();
 	}
-	
+	 
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
