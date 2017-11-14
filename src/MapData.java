@@ -6,9 +6,9 @@ import java.util.Scanner;
 
 public class MapData {
 	/*
-	 * Each block is 50x50, whole frame is 750x750.
+	 * Each block is 50x50, whole frame is 1000x1000.
 	 */
-	private String[][] map = new String[15][15]; //Borders of the game map is initialized before
+	private String[][] map = new String[20][20]; //Borders of the game map is initialized before
 	private Scanner levelScanner;
 	private Scanner rowScanner;
 	
