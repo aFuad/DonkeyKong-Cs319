@@ -73,8 +73,8 @@ public class GamePanel extends JPanel implements Runnable{
 		super.paintComponent(g);
 		//setBackground(Color.BLACK);
 		//Test
-		for(int y = 0; y < 15; y++){
-			for(int x = 0; x < 15; x++){
+		for(int y = 0; y < 20; y++){
+			for(int x = 0; x < 20; x++){
 				//Commented part below aim to test rectangles of nonmovable objects
 				if(gameEngine.getMapObject(x, y) instanceof Platform){
 					g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
@@ -84,7 +84,7 @@ public class GamePanel extends JPanel implements Runnable{
 					g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
 					//g.drawRect((int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMinY(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxX() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxY() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinY());
 				}
-				else if(y < 14){ //If y = 14, then inside the if statement we check y = 15 and program gives outOfBound error
+				else if(y < 19){ //If y = 19, then inside the if statement we check y = 20 and program gives outOfBound error
 					if(gameEngine.getMapObject(x, y) instanceof Girl && gameEngine.getMapObject(x, y + 1) instanceof Girl){ //To create girl, we need 2 blocks because monkey takes 50x100 space
 						g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
 						//g.drawRect((int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMinY(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxX() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxY() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinY());
@@ -93,7 +93,7 @@ public class GamePanel extends JPanel implements Runnable{
 						g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
 						//g.drawRect((int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMinY(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxX() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxY() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinY());
 					}
-					else if(x < 14){ //If x = 14, then inside the if statement we check x = 15 and program gives outOfBound error.
+					else if(x < 19){ //If x = 19, then inside the if statement we check x = 20 and program gives outOfBound error.
 						//To create monkey, we need 4 blocks because monkey takes 100x100 space
 						if(gameEngine.getMapObject(x, y) instanceof Monkey && gameEngine.getMapObject(x + 1, y) instanceof Monkey && gameEngine.getMapObject(x, y + 1) instanceof Monkey && gameEngine.getMapObject(x + 1, y + 1) instanceof Monkey){
 							g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
