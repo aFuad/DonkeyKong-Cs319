@@ -10,7 +10,7 @@ Section 3 – Team E: (3E)
 
 
 Group Members: 
-1. Cagatay Kupheli
+1. Cagatay Kupeli
 2. Sine Mete
 3. Arkin Yilmaz
 4. Fuad Ahmad
