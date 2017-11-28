@@ -1,19 +1,29 @@
 package source;
 
-import java.awt.Rectangle;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 public class GameEngine {
-	private int score;
-	private int numberOfLives = 3;
+	private static int totalScore = 0;
+	private int score = 0;
+	private static int remainingLives = 3;
 	private int currentLevel;
+	
+	private final int JUMP_SPEED_MAX = 18; //Represents maximum limit of vertical speed of jumping
+	private int jumpSpeed = JUMP_SPEED_MAX;
+	
+	private final int GRAVITY_MIN = 0; //Represents minimum limit of gravity
+	private final int GRAVITY_MAX = 10; //Represents maximum limit of gravity
+	private int gravity = GRAVITY_MIN;
+	
+	//Check whether or not user pressed W while the Jumpman can jump
+	private boolean jump;
 	
 	/*
 	 * During run time map 2D array will change because we do not want user or anyone else to change data inside our level.txt file.
 	 * Therefore I did not put any set method for MapData object, even if we want to change it we cannot.
 	 */
-	private Nonmovable[][] map = new Nonmovable[15][15];
+	private Nonmovable[][] map = new Nonmovable[20][20];
 	
 	 /* 
 	  * boolean gameOver
@@ -39,6 +49,8 @@ public class GameEngine {
 	 */
 	private ArrayList<Nonmovable> nonmovable = new ArrayList<Nonmovable>();
 	
+	private ArrayList<Enemy> enemies = new ArrayList<Enemy>();
+	
 	/*
 	 * Player has an important role on our game. Therefore I need an object to reach Player easily.
 	 * We have not initialize player yet. Do not forget to do it.
@@ -57,8 +69,8 @@ public class GameEngine {
 	
 	//Load the map as objects
 	private void loadMap(){
-		for(int y = 0; y < 15; y++){
-			for(int x = 0; x < 15; x++){
+		for(int y = 0; y < 20; y++){
+			for(int x = 0; x < 20; x++){
 				if(myMapData.getMapData(x, y) == "Space"){
 					map[x][y] = null;
 				}
@@ -96,7 +108,37 @@ public class GameEngine {
 			}
 		}
 	}
-
+	
+	/*
+	 * When players dies and he or she has enough lives to continue reload the map
+	 * If statement will be written in GamePanel class
+	 */
+	public void reLoadMap(){
+		
+	}
+	
+	/*
+	 * Check if the player dies or not.
+	 */
+	public boolean collusionWithBarrel(){
+		return false;
+	}
+	
+	/*
+	 * If barrel hits oil barrel. We will remove it from the enemies arrayList then instead add a fire elemental.
+	 */
+	public void collusionBarrelAndOil(){
+		
+	}
+	
+	public boolean isJump(){
+		return jump;
+	}
+	
+	public void setJump(boolean jump){
+		this.jump = jump;
+	}
+	
 	public int getScore() {
 		return score;
 	}
@@ -105,12 +147,12 @@ public class GameEngine {
 		this.score = score;
 	}
 
-	public int getNumberOfLives() {
-		return numberOfLives;
+	public int getRemainingLives() {
+		return remainingLives;
 	}
 
-	public void setNumberOfLives(int numberOfLives) {
-		this.numberOfLives = numberOfLives;
+	public void setRemainingLives(int remainingLives) {
+		this.remainingLives = remainingLives;
 	}
 
 	public boolean isGameOver() {
@@ -155,73 +197,175 @@ public class GameEngine {
 	 * We coded in a way that GamePanel Class reach wPressed(), aPressed(), sPressed(), dPressed() and spacePressed() if and only if game was running.
 	 * Therefore we do not need to worry about it.
 	 */
+	
 	public void wPressed(){
-		boolean collusion = false;
+		boolean collision = false;
+		boolean climb = false;
 		for(int i = 0; i < nonmovable.size(); i++){
+			//Collision with Platform
 			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY() - 5,
-					player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
-					&& !nonmovable.get(i).getPassThrough()){
-				collusion = true;
+				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
+				&& !nonmovable.get(i).getPassThrough()){
+				collision = true;
+			}
+			
+			//Collision with Ladder
+			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY(),
+				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
+				&& nonmovable.get(i) instanceof Ladder){
+				climb = true;
 			}
 		}
 		
-		if(!collusion){
+		//Go up Ladder
+		if(!collision && climb && jump == false){
 			player.goUp();
+		}
+		
+		if(!collision && jumpable()){
+			jump = true;
 		}
 	}
 	
+	//Check whether or not the Jumpman can jump
+	public boolean jumpable(){
+		for(int i = 0; i < nonmovable.size(); i++){
+			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY() + 5,
+				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())){
+				if(nonmovable.get(i) instanceof Platform){
+					return true;
+				}
+			}
+			
+			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY(),
+				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
+				&& nonmovable.get(i) instanceof Ladder){
+				return false;
+			}
+		}
+		return false;
+	}
+	
 	public void aPressed(){
-		boolean collusion = false;
+		boolean collision = false;
+		int minX = 20 * 50; //We have 20 blocks and each block takes 50 space in x.
 		for(int i = 0; i < nonmovable.size(); i++){
 			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX() - 5, player.getRectangle().getMinY(),
-					player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
-					&& !nonmovable.get(i).getPassThrough()){
-				collusion = true;
+				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
+				&& !nonmovable.get(i).getPassThrough()){
+				collision = true;
+			}
+			
+			//Collision with borders
+			if(nonmovable.get(i).getRectangle().getMinX() < minX){
+				minX = (int) nonmovable.get(i).getRectangle().getMinX();
 			}
 		}
 		
-		if(!collusion){
+		// Collision with borders
+		if(getPlayer().getX() < minX + 5){ //5
+			collision = true;
+		}
+		
+		if(!collision){
 			player.goLeft();
 		}
 	}
 	
 	public void sPressed(){
-		boolean collusion = false;
+		boolean collision = false;
+		boolean goDown = false;
 		for(int i = 0; i < nonmovable.size(); i++){
+			//Collision
 			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY() + 5,
-					player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
-					&& !nonmovable.get(i).getPassThrough()){
-				collusion = true;
+				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
+				&& !nonmovable.get(i).getPassThrough()){
+				collision = true;
+			}
+			
+			//Collision with Ladder
+			if(((nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY() + 5,
+				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())) ||
+				(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY(),
+				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())))
+				&& nonmovable.get(i) instanceof Ladder){
+				goDown = true;
 			}
 		}
 		
-		if(!collusion){
+		if(!collision && goDown){
 			player.goDown();
 		}
 	}
 	
 	public void dPressed(){
-		boolean collusion = false;
+		boolean collision = false;
+		int maxX = 0;
 		for(int i = 0; i < nonmovable.size(); i++){
 			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX() + 5, player.getRectangle().getMinY(),
-					player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
-					&& !nonmovable.get(i).getPassThrough()){
-				collusion = true;
+				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
+				&& !nonmovable.get(i).getPassThrough()){
+				collision = true;
+			}
+			
+			//Collision with borders
+			if(nonmovable.get(i).getRectangle().getMaxX() > maxX){
+				maxX = (int) nonmovable.get(i).getRectangle().getMaxX();
 			}
 		}
 		
-		if(!collusion){
+		// Collision with borders
+		if(getPlayer().getX() > maxX - 55){ //945
+			collision = true;
+		}
+		
+		if(!collision){
 			player.goRight();
 		}
 	}
 	
 	public void spacePressed(){
-		/*
-		 * Player can use space button if and only if he/she has hammer buff.
-		 * Therefore we need an if statement to decide player can use strike action
-		 * if(getPlayer().canStrike()){
-		 *  strike();
-		 * }
-		 */
+		
+	}
+	
+	public void gravity(){
+		boolean collision = false;
+		for(int i = 0; i < nonmovable.size(); i++){
+			//Collision
+			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY() + gravity,
+				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())){
+				collision = true;
+			}
+		}
+	
+		if(!collision){
+			player.setY(player.getY() + gravity);
+			player.relocateRectangle(player.getX(), player.getY());
+			
+			if(gravity < GRAVITY_MAX){
+				gravity++;
+			}
+		}
+		else{
+			gravity = GRAVITY_MIN;
+		}
+	}
+	
+	public void jump(){
+		player.setY(player.getY() - jumpSpeed);
+		player.relocateRectangle(player.getX(), player.getY());
+		
+		if(jumpSpeed > 0){
+			jumpSpeed--;
+		}
+		
+		for(int i = 0; i < nonmovable.size(); i++){
+			//Collision
+			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY() + 5,
+				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())){
+				jump = false;
+				jumpSpeed = JUMP_SPEED_MAX;
+			}
+		}
 	}
 }
