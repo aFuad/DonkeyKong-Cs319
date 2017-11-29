@@ -1,5 +1,6 @@
 package source;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.io.FileNotFoundException;
@@ -17,7 +18,7 @@ public class GamePanel extends JPanel implements Runnable{
 	
 	private boolean buttonW, buttonA, buttonS, buttonD, buttonSpace = false;
 
-	public GamePanel(int level) throws FileNotFoundException{
+	public GamePanel(GUIPanelManager guiPanelManager, int level) throws FileNotFoundException{
 		init(level);
 	}
 	
@@ -34,6 +35,7 @@ public class GamePanel extends JPanel implements Runnable{
 		 * Same reason as start() method. We might want to use KeyHandler inner class and this method in other GUI parts such as MainMenu.
 		 */
 		initializingKeyBindings();
+		gameEngine.createBarrel(2, 2, EnemyType.FALLING_BARREL);
 	}
 	
 	@Override
@@ -64,15 +66,17 @@ public class GamePanel extends JPanel implements Runnable{
 				
 				if(gameEngine.isJump()){
 					gameEngine.jump();
-					//System.out.println(gameEngine.isJump());
 				}
 				gameEngine.gravity();
+				
+				for(int i = 0; i < gameEngine.getBarrelList().size(); i++){
+					//Barrels will be move here
+				}
 			}
 			else if(!gameEngine.isMovement()){ //While game is paused
 				//Pause menu initialization if needed
 				//Draw pause menu or go pause menu, depends on initialization
 			}
-			//gameEngine.sPressed();
 			
 			try{
 				Thread.sleep(20); //Rendering speed of the thread 100
@@ -95,42 +99,46 @@ public class GamePanel extends JPanel implements Runnable{
 	 */
 	public void paintComponent(Graphics g){
 		super.paintComponent(g);
-		//setBackground(Color.BLACK);
+		setBackground(Color.BLACK);
 		//Test
 		for(int y = 0; y < 20; y++){
 			for(int x = 0; x < 20; x++){
 				//Commented part below aim to test rectangles of nonmovable objects
 				if(gameEngine.getMapObject(x, y) instanceof Platform){
 					g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
-					//g.drawRect((int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMinY(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxX() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxY() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinY());
 				}
 				else if(gameEngine.getMapObject(x, y) instanceof Ladder){
 					g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
-					//g.drawRect((int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMinY(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxX() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxY() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinY());
 				}
 				else if(y < 19){ //If y = 19, then inside the if statement we check y = 20 and program gives outOfBound error
 					if(gameEngine.getMapObject(x, y) instanceof Girl && gameEngine.getMapObject(x, y + 1) instanceof Girl){ //To create girl, we need 2 blocks because monkey takes 50x100 space
 						g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
-						//g.drawRect((int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMinY(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxX() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxY() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinY());
 					}
 					else if(gameEngine.getMapObject(x, y) instanceof Oil && gameEngine.getMapObject(x, y + 1) instanceof Oil){ //To create oil, we need 2 blocks because monkey takes 50x100 space
 						g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
-						//g.drawRect((int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMinY(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxX() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxY() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinY());
 					}
 					else if(x < 19){ //If x = 19, then inside the if statement we check x = 20 and program gives outOfBound error.
 						//To create monkey, we need 4 blocks because monkey takes 100x100 space
 						if(gameEngine.getMapObject(x, y) instanceof Monkey && gameEngine.getMapObject(x + 1, y) instanceof Monkey && gameEngine.getMapObject(x, y + 1) instanceof Monkey && gameEngine.getMapObject(x + 1, y + 1) instanceof Monkey){
 							g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
-							//g.drawRect((int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMinY(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxX() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinX(), (int) gameEngine.getMapObject(x, y).getRectangle().getMaxY() - (int) gameEngine.getMapObject(x, y).getRectangle().getMinY());
 						}
 					}
 				}
 			}
 		}
 		
-		g.drawImage(gameEngine.getPlayer().getImagePlayerRight(), gameEngine.getPlayer().getX(), gameEngine.getPlayer().getY(), this);
+		for(int i = 0; i < gameEngine.getBarrelList().size(); i++){
+			g.drawImage(gameEngine.getBarrelList().get(i).getImage(), gameEngine.getBarrelList().get(i).getX(), gameEngine.getBarrelList().get(i).getY(), this);
+		}
+		
+		for(int i = 0; i < gameEngine.getFireElementalList().size(); i++){
+			g.drawImage(gameEngine.getFireElementalList().get(i).getImage(), gameEngine.getFireElementalList().get(i).getX(), gameEngine.getFireElementalList().get(i).getY(), this);
+		}
+		
+		g.drawImage(gameEngine.getPlayer().getImage(), gameEngine.getPlayer().getX(), gameEngine.getPlayer().getY(), this);
 		//Comment below aim to test rectangle of player
-		//g.drawRect((int)(gameEngine.getPlayer().getRectangle().getMinX()), (int)(gameEngine.getPlayer().getRectangle().getMinY()), (int)(gameEngine.getPlayer().getRectangle().getMaxX() - gameEngine.getPlayer().getRectangle().getMinX()), (int)(gameEngine.getPlayer().getRectangle().getMaxX() - gameEngine.getPlayer().getRectangle().getMinX()));
+		g.drawRect((int)(gameEngine.getPlayer().getRectangle().getMinX() + 15), (int)(gameEngine.getPlayer().getRectangle().getMinY()), (int)(gameEngine.getPlayer().getRectangle().getMaxX() - gameEngine.getPlayer().getRectangle().getMinX() - 40), (int)(gameEngine.getPlayer().getRectangle().getMaxX() - gameEngine.getPlayer().getRectangle().getMinX()));
+		g.drawRect((int)(gameEngine.getPlayer().getRectangle().getMinX() + 25), (int)(gameEngine.getPlayer().getRectangle().getMinY()), (int)(gameEngine.getPlayer().getRectangle().getMaxX() - gameEngine.getPlayer().getRectangle().getMinX() - 40), (int)(gameEngine.getPlayer().getRectangle().getMaxX() - gameEngine.getPlayer().getRectangle().getMinX()));
 	}
 	
 	public void initializingKeyBindings(){
