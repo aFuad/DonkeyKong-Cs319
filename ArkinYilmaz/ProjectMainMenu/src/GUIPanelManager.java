@@ -57,5 +57,15 @@ public class GUIPanelManager extends JFrame {
 		setContentPane(newPanel);
 		currentPanel = newPanel;
 	}
+	
+	public void setGamePanelVisible(int level) {
+		if(currentPanel != null)
+			currentPanel.setVisible(false);
+		
+		JPanel newPanel = new GamePanel(this, int level);
+
+		setContentPane(newPanel);
+		currentPanel = newPanel;
+	}
 
 }

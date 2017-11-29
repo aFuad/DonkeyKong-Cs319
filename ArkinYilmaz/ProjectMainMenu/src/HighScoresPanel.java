@@ -1,5 +1,4 @@
 import java.awt.Color;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
@@ -18,9 +17,7 @@ public class HighScoresPanel extends JPanel {
 	private GUIPanelManager guiManager;
 	private JLabel returnLabel;
 	private int currentOption;
-	private final int GRID_HEIGHT = 6;
-	private final int GRID_WIDTH = 1;
-	
+
 	public HighScoresPanel(GUIPanelManager guiManager) {
 		
 		initializeKeyBindings();
@@ -31,11 +28,13 @@ public class HighScoresPanel extends JPanel {
 		returnLabel.setForeground(MainMenu.highlighter);
 		returnLabel.setFont(MainMenu.optionsFont);
 		returnLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		returnLabel.setSize(285, 45);
+		returnLabel.setLocation(355, 850);
 		add(returnLabel);
 		
 		//setPreferredSize(new Dimension(750,750));
 		setBackground(Color.BLACK);
-		setLayout(new GridLayout(GRID_HEIGHT,GRID_WIDTH));	
+		setLayout(null);	
 	}
 	
 	public void initializeKeyBindings(){
@@ -62,7 +61,6 @@ public class HighScoresPanel extends JPanel {
 		
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			// TODO Auto-generated method stub
 			if(name == "enter"){
 				if(currentOption == 0) {
 					guiManager.setMainMenuPanelVisible();

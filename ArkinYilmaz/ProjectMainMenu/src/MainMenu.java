@@ -104,20 +104,22 @@ public class MainMenu extends JPanel{
 		
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			// TODO Auto-generated method stub
 			if(name == "enter"){
 				if(currentOption == 0) {
 					System.out.println("Play Game pressed");
 					guiManager.setLevelSelectionPanelVisible();
 				}
+				
 				else if (currentOption == 1) {
 					System.out.println("Options pressed");
 					guiManager.setOptionsPanelVisible();
 				}
+				
 				else if(currentOption == 2) {
 					System.out.println("Highscores pressed");
 					guiManager.setHighScoresPanelVisible();
 				}
+				
 				else if(currentOption == 3) {
 					System.out.println("Quit pressed");
 					System.exit(0);

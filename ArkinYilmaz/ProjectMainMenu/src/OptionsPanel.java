@@ -10,7 +10,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
-import javax.swing.SwingConstants;
 
 
 @SuppressWarnings("serial")
@@ -19,24 +18,28 @@ public class OptionsPanel extends JPanel{
 	private GUIPanelManager guiManager;
 	private JLabel returnLabel;
 	private int currentOption;
-	private final int GRID_HEIGHT = 6;
-	private final int GRID_WIDTH = 1;
-	
+	//private final int GRID_HEIGHT = 6;
+	//private final int GRID_WIDTH = 1;
+
 	public OptionsPanel(GUIPanelManager guiManager) {
 		
 		initializeKeyBindings();
 		this.guiManager = guiManager;
 		currentOption = 0;
-
+		
+		
+		
 		returnLabel = new JLabel("RETURN");
 		returnLabel.setForeground(MainMenu.highlighter);
 		returnLabel.setFont(MainMenu.optionsFont);
-		returnLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		//returnLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		returnLabel.setSize(285, 45);
+		returnLabel.setLocation(355, 850);
 		add(returnLabel);
 		
 		//setPreferredSize(new Dimension(750,750));
 		setBackground(Color.BLACK);
-		setLayout(new GridLayout(GRID_HEIGHT,GRID_WIDTH));	
+		setLayout(null);
 	}
 	
 	public void initializeKeyBindings(){
@@ -63,7 +66,6 @@ public class OptionsPanel extends JPanel{
 		
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			// TODO Auto-generated method stub
 			if(name == "enter"){
 				if(currentOption == 0) {
 					guiManager.setMainMenuPanelVisible();
