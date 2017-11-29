@@ -18,6 +18,10 @@ public class SoundEffect {
 		enable=false;
 	}
 	
+	public void enableSound(){
+		enable=true;
+	}
+	
 	public void walk(){
 		if(enable){
 			try{
