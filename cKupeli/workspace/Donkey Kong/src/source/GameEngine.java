@@ -1,371 +1,289 @@
 package source;
 
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.event.ActionEvent;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 
-public class GameEngine {
-	private static int totalScore = 0;
-	private int score = 0;
-	private static int remainingLives = 3;
-	private int currentLevel;
-	
-	private final int JUMP_SPEED_MAX = 18; //Represents maximum limit of vertical speed of jumping
-	private int jumpSpeed = JUMP_SPEED_MAX;
-	
-	private final int GRAVITY_MIN = 0; //Represents minimum limit of gravity
-	private final int GRAVITY_MAX = 10; //Represents maximum limit of gravity
-	private int gravity = GRAVITY_MIN;
-	
-	//Check whether or not user pressed W while the Jumpman can jump
-	private boolean jump;
-	
-	/*
-	 * During run time map 2D array will change because we do not want user or anyone else to change data inside our level.txt file.
-	 * Therefore I did not put any set method for MapData object, even if we want to change it we cannot.
-	 */
-	private Nonmovable[][] map = new Nonmovable[20][20];
-	
-	 /* 
-	  * boolean gameOver
-	  * Purpose of gameOver is to identify the difference between pause() and stop() in GamePanel.
-	  * Therefore we can stop rendering the screen and return back to main menu
-	  * False means game is still running
-	  * True means game is over
-	  */
-	private boolean gameOver = false;
-	
-	/*
-	 * boolean movement
-	 * Purpose of movement is to identify the difference between pause() and stop() in GamePanel.
-	 * Therefore we stop rendering; however unlike gameOver, we do not return back to main menu
-	 * True means game is not paused
-	 * False means game is paused
-	 */
-	private boolean movement = true;
-	
-	/*
-	 * We store map objects inside an ArrayList as well in order to use them to implement collision.
-	 * I was planning to use ArrayList for map as well, but I end up facing some technicality inside GamePanel.
-	 */
-	private ArrayList<Nonmovable> nonmovable = new ArrayList<Nonmovable>();
-	
-	private ArrayList<Enemy> enemies = new ArrayList<Enemy>();
-	
-	/*
-	 * Player has an important role on our game. Therefore I need an object to reach Player easily.
-	 * We have not initialize player yet. Do not forget to do it.
-	 */
-	private Player player;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 
-	//File Management Components
-	private ScoreData myScoreData;
-	private MapData myMapData;
+public class GamePanel extends JPanel implements Runnable{
+	private Thread myThread;
+	private GameEngine gameEngine;
 	
-	public GameEngine(int level) throws FileNotFoundException{
-		myScoreData = new ScoreData();
-		myMapData = new MapData(level);
-		loadMap();
+	private boolean buttonW, buttonA, buttonS, buttonD, buttonSpace = false;
+
+	public GamePanel(GUIPanelManager guiPanelManager, int level) throws FileNotFoundException{
+		init(level);
 	}
 	
-	//Load the map as objects
-	private void loadMap(){
+	private void init(int level) throws FileNotFoundException{
+		gameEngine = new GameEngine(level);
+		/*
+		 * start() generates thread for GamePanel class.
+		 * I made a method because of we might want to use structure of this class again in some other class such as PauseMenu.
+		 */
+		start();
+		
+		/*
+		 * initializeKeyBindings() decides which keyboard inputs we are going to use and as in the name initialize them
+		 * Same reason as start() method. We might want to use KeyHandler inner class and this method in other GUI parts such as MainMenu.
+		 */
+		initializingKeyBindings();
+		gameEngine.createBarrel(2, 2, EnemyType.FALLING_BARREL);
+	}
+	
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		while(!gameEngine.isGameOver()){ //While game is not over
+			if(gameEngine.isMovement()){ //While game is running
+				//Keybindings boolean values
+				if(buttonW){
+					gameEngine.wPressed();
+				}
+				
+				if(buttonA){
+					gameEngine.aPressed();
+				}
+				
+				if(buttonS){
+					gameEngine.sPressed();
+				}
+				
+				if(buttonD){
+					gameEngine.dPressed();
+				}
+				
+				if(buttonSpace){
+					gameEngine.spacePressed();
+				}
+				
+				if(gameEngine.isJump()){
+					gameEngine.jump();
+				}
+				gameEngine.gravity();
+				
+				for(int i = 0; i < gameEngine.getBarrelList().size(); i++){
+					//Barrels will be move here
+				}
+			}
+			else if(!gameEngine.isMovement()){ //While game is paused
+				//Pause menu initialization if needed
+				//Draw pause menu or go pause menu, depends on initialization
+			}
+			
+			try{
+				Thread.sleep(20); //Rendering speed of the thread 100
+			}
+			catch (InterruptedException e){
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			repaint();
+		}
+		//Go back to main menu
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
+	 * 
+	 * When we call repaint() in overriden run() method, it calls paintComponent() method and render the JPanel.
+	 * This method initialize after object methods because we need to call drawImage by using those objects.
+	 */
+	public void paintComponent(Graphics g){
+		super.paintComponent(g);
+		setBackground(Color.BLACK);
+		//Test
 		for(int y = 0; y < 20; y++){
 			for(int x = 0; x < 20; x++){
-				if(myMapData.getMapData(x, y) == "Space"){
-					map[x][y] = null;
+				//Commented part below aim to test rectangles of nonmovable objects
+				if(gameEngine.getMapObject(x, y) instanceof Platform){
+					g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
 				}
-				else if(myMapData.getMapData(x, y) == "Platform"){
-					map[x][y] = new Platform(x, y);
-					nonmovable.add(getMapObject(x, y));
+				else if(gameEngine.getMapObject(x, y) instanceof Ladder){
+					g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
 				}
-				else if(myMapData.getMapData(x, y) == "Ladder"){
-					map[x][y] = new Ladder(x, y);
-					nonmovable.add(getMapObject(x, y));
-				}
-				else if(myMapData.getMapData(x, y) == "Monkey"){
-					map[x][y] = new Monkey(x, y);
-					nonmovable.add(getMapObject(x, y));
-				}
-				else if(myMapData.getMapData(x, y) == "Girl"){
-					map[x][y] = new Girl(x, y);
-					nonmovable.add(getMapObject(x, y));
-				}
-				else if(myMapData.getMapData(x, y) == "Oil"){
-					map[x][y] = new Oil(x, y);
-					nonmovable.add(getMapObject(x, y));
-				}
-				else if(myMapData.getMapData(x, y) == "ExtraLife"){
-					map[x][y] = new ExtraLife(x, y);
-					nonmovable.add(getMapObject(x, y));
-				}
-				else if(myMapData.getMapData(x, y) == "Hammer"){
-					map[x][y] = new Hammer(x, y);
-					nonmovable.add(getMapObject(x, y));
-				}
-				else if(myMapData.getMapData(x, y) == "Jumpman"){
-					player = new Player(x, y);
+				else if(y < 19){ //If y = 19, then inside the if statement we check y = 20 and program gives outOfBound error
+					if(gameEngine.getMapObject(x, y) instanceof Girl && gameEngine.getMapObject(x, y + 1) instanceof Girl){ //To create girl, we need 2 blocks because monkey takes 50x100 space
+						g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
+					}
+					else if(gameEngine.getMapObject(x, y) instanceof Oil && gameEngine.getMapObject(x, y + 1) instanceof Oil){ //To create oil, we need 2 blocks because monkey takes 50x100 space
+						g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
+					}
+					else if(x < 19){ //If x = 19, then inside the if statement we check x = 20 and program gives outOfBound error.
+						//To create monkey, we need 4 blocks because monkey takes 100x100 space
+						if(gameEngine.getMapObject(x, y) instanceof Monkey && gameEngine.getMapObject(x + 1, y) instanceof Monkey && gameEngine.getMapObject(x, y + 1) instanceof Monkey && gameEngine.getMapObject(x + 1, y + 1) instanceof Monkey){
+							g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
+						}
+					}
 				}
 			}
 		}
-	}
-	
-	/*
-	 * When players dies and he or she has enough lives to continue reload the map
-	 * If statement will be written in GamePanel class
-	 */
-	public void reLoadMap(){
 		
-	}
-	
-	/*
-	 * Check if the player dies or not.
-	 */
-	public boolean collusionWithBarrel(){
-		return false;
-	}
-	
-	/*
-	 * If barrel hits oil barrel. We will remove it from the enemies arrayList then instead add a fire elemental.
-	 */
-	public void collusionBarrelAndOil(){
-		
-	}
-	
-	public boolean isJump(){
-		return jump;
-	}
-	
-	public void setJump(boolean jump){
-		this.jump = jump;
-	}
-	
-	public int getScore() {
-		return score;
-	}
-
-	public void setScore(int score) {
-		this.score = score;
-	}
-
-	public int getRemainingLives() {
-		return remainingLives;
-	}
-
-	public void setRemainingLives(int remainingLives) {
-		this.remainingLives = remainingLives;
-	}
-
-	public boolean isGameOver() {
-		return gameOver;
-	}
-
-	public void setGameOver(boolean gameOver) {
-		this.gameOver = gameOver;
-	}
-
-	public int getCurrentLevel() {
-		return currentLevel;
-	}
-
-	public void setCurrentLevel(int currentLevel) {
-		this.currentLevel = currentLevel;
-	}
-	
-	public void updateHighScore(int score){
-		if(score > myScoreData.getScore()){
-			myScoreData.setScore(score);
+		for(int i = 0; i < gameEngine.getBarrelList().size(); i++){
+			g.drawImage(gameEngine.getBarrelList().get(i).getImage(), gameEngine.getBarrelList().get(i).getX(), gameEngine.getBarrelList().get(i).getY(), this);
 		}
-	}
-
-	public boolean isMovement() {
-		return movement;
-	}
-
-	public void setMovement(boolean movement) {
-		this.movement = movement;
-	}
-
-	public Nonmovable getMapObject(int x, int y) {
-		return map[x][y];
+		
+		for(int i = 0; i < gameEngine.getFireElementalList().size(); i++){
+			g.drawImage(gameEngine.getFireElementalList().get(i).getImage(), gameEngine.getFireElementalList().get(i).getX(), gameEngine.getFireElementalList().get(i).getY(), this);
+		}
+		
+		g.drawImage(gameEngine.getPlayer().getImage(), gameEngine.getPlayer().getX(), gameEngine.getPlayer().getY(), this);
+		//Comment below aim to test rectangle of player
+		g.drawRect((int)(gameEngine.getPlayer().getRectangle().getMinX() + 15), (int)(gameEngine.getPlayer().getRectangle().getMinY()), (int)(gameEngine.getPlayer().getRectangle().getMaxX() - gameEngine.getPlayer().getRectangle().getMinX() - 40), (int)(gameEngine.getPlayer().getRectangle().getMaxX() - gameEngine.getPlayer().getRectangle().getMinX()));
+		g.drawRect((int)(gameEngine.getPlayer().getRectangle().getMinX() + 25), (int)(gameEngine.getPlayer().getRectangle().getMinY()), (int)(gameEngine.getPlayer().getRectangle().getMaxX() - gameEngine.getPlayer().getRectangle().getMinX() - 40), (int)(gameEngine.getPlayer().getRectangle().getMaxX() - gameEngine.getPlayer().getRectangle().getMinX()));
 	}
 	
-	public Player getPlayer(){
-		return player;
+	public void initializingKeyBindings(){
+		InputMap inputMapPause = this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		ActionMap actionMapPause = this.getActionMap();
+		
+		/*
+		 * 1st parameter is the name of the keyboard input.
+		 * ESCAPE = ESC button
+		 * W = W button
+		 * A = A button
+		 * S = S button
+		 * D = D button
+		 * SPACE = Space Button
+		 * 2nd parameter is the name of the action which indicates pressing a button which we will use with ActionMap object.
+		 */
+		
+		/* 
+		 * We decided to use release for ESCAPE to prevent overlapping.
+		 * We want player to press once to pause or resume the game and released is a perfect fit for that action.
+		 */
+		inputMapPause.put(KeyStroke.getKeyStroke("released ESCAPE"), "escapeReleased");
+		actionMapPause.put("escapeReleased", new KeyHandler("escape"));
+		
+		inputMapPause.put(KeyStroke.getKeyStroke("W"), "wPressed");
+		actionMapPause.put("wPressed", new KeyHandler("wPressed"));
+		
+		inputMapPause.put(KeyStroke.getKeyStroke("released W"), "wReleased");
+		actionMapPause.put("wReleased", new KeyHandler("wReleased"));
+		
+		inputMapPause.put(KeyStroke.getKeyStroke("A"), "aPressed");
+		actionMapPause.put("aPressed", new KeyHandler("aPressed"));
+		
+		inputMapPause.put(KeyStroke.getKeyStroke("released A"), "aReleased");
+		actionMapPause.put("aReleased", new KeyHandler("aReleased"));
+		
+		inputMapPause.put(KeyStroke.getKeyStroke("D"), "dPressed");
+		actionMapPause.put("dPressed", new KeyHandler("dPressed"));
+		
+		inputMapPause.put(KeyStroke.getKeyStroke("released D"), "dReleased");
+		actionMapPause.put("dReleased", new KeyHandler("dReleased"));
+		
+		inputMapPause.put(KeyStroke.getKeyStroke("S"), "sPressed");
+		actionMapPause.put("sPressed", new KeyHandler("sPressed"));
+		
+		inputMapPause.put(KeyStroke.getKeyStroke("released S"), "sReleased");
+		actionMapPause.put("sReleased", new KeyHandler("sReleased"));
+		
+		inputMapPause.put(KeyStroke.getKeyStroke("SPACE"), "spacePressed");
+		actionMapPause.put("spacePressed", new KeyHandler("spacePressed"));
+		
+		inputMapPause.put(KeyStroke.getKeyStroke("released SPACE"), "spaceReleased");
+		actionMapPause.put("spaceReleased", new KeyHandler("spaceReleased"));
 	}
 	
-	/*
-	 * We coded in a way that GamePanel Class reach wPressed(), aPressed(), sPressed(), dPressed() and spacePressed() if and only if game was running.
-	 * Therefore we do not need to worry about it.
-	 */
-	
-	public void wPressed(){
-		boolean collision = false;
-		boolean climb = false;
-		for(int i = 0; i < nonmovable.size(); i++){
-			//Collision with Platform
-			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY() - 5,
-				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
-				&& !nonmovable.get(i).getPassThrough()){
-				collision = true;
+	//Nested class to implement KeyBindings
+	class KeyHandler extends AbstractAction{
+		String name;
+		
+		public KeyHandler(String name){
+			this.name = name;
+		}
+		
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			// TODO Auto-generated method stub
+			if(name == "escape"){
+				System.out.println("Escape Pressed");
+				if(gameEngine.isMovement()){ //While game is running
+					pause();
+				}
+				else if(!gameEngine.isMovement()){ //While game is paused
+					resume();
+				}
 			}
-			
-			//Collision with Ladder
-			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY(),
-				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
-				&& nonmovable.get(i) instanceof Ladder){
-				climb = true;
+			else if(name == "wPressed"){
+				if(gameEngine.isMovement()){ //While game is running
+					buttonW = true;
+				}
 			}
-		}
-		
-		//Go up Ladder
-		if(!collision && climb && jump == false){
-			player.goUp();
-		}
-		
-		if(!collision && jumpable()){
-			jump = true;
-		}
-	}
-	
-	//Check whether or not the Jumpman can jump
-	public boolean jumpable(){
-		for(int i = 0; i < nonmovable.size(); i++){
-			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY() + 5,
-				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())){
-				if(nonmovable.get(i) instanceof Platform){
-					return true;
+			else if(name == "wReleased"){
+				if(gameEngine.isMovement()){ //While game is running
+					buttonW = false;
+				}
+			}
+			else if(name == "aPressed"){
+				if(gameEngine.isMovement()){ //While game is running
+					buttonA = true;
+				}
+			}
+			else if(name == "aReleased"){
+				if(gameEngine.isMovement()){ //While game is running
+					buttonA = false;
+				}
+			}
+			else if(name == "sPressed"){
+				if(gameEngine.isMovement()){ //While game is running
+					buttonS = true;
+				}
+			}
+			else if(name == "sReleased"){
+				if(gameEngine.isMovement()){ //While game is running
+					buttonS = false;
+				}
+			}
+			else if(name == "dPressed"){
+				if(gameEngine.isMovement()){ //While game is running
+					buttonD = true;
+				}
+			}
+			else if(name == "dReleased"){
+				if(gameEngine.isMovement()){ //While game is running
+					buttonD = false;
+				}
+			}
+			else if(name == "spacePressed"){
+				if(gameEngine.isMovement()){ //While game is running
+					buttonSpace = true;
+				}
+			}
+			else if(name == "spaceReleased"){
+				if(gameEngine.isMovement()){ //While game is running
+					buttonSpace = false;
 				}
 			}
 			
-			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY(),
-				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
-				&& nonmovable.get(i) instanceof Ladder){
-				return false;
-			}
 		}
-		return false;
-	}
-	
-	public void aPressed(){
-		boolean collision = false;
-		int minX = 20 * 50; //We have 20 blocks and each block takes 50 space in x.
-		for(int i = 0; i < nonmovable.size(); i++){
-			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX() - 5, player.getRectangle().getMinY(),
-				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
-				&& !nonmovable.get(i).getPassThrough()){
-				collision = true;
-			}
-			
-			//Collision with borders
-			if(nonmovable.get(i).getRectangle().getMinX() < minX){
-				minX = (int) nonmovable.get(i).getRectangle().getMinX();
-			}
-		}
-		
-		// Collision with borders
-		if(getPlayer().getX() < minX + 5){ //5
-			collision = true;
-		}
-		
-		if(!collision){
-			player.goLeft();
-		}
-	}
-	
-	public void sPressed(){
-		boolean collision = false;
-		boolean goDown = false;
-		for(int i = 0; i < nonmovable.size(); i++){
-			//Collision
-			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY() + 5,
-				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
-				&& !nonmovable.get(i).getPassThrough()){
-				collision = true;
-			}
-			
-			//Collision with Ladder
-			if(((nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY() + 5,
-				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())) ||
-				(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY(),
-				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())))
-				&& nonmovable.get(i) instanceof Ladder){
-				goDown = true;
-			}
-		}
-		
-		if(!collision && goDown){
-			player.goDown();
-		}
-	}
-	
-	public void dPressed(){
-		boolean collision = false;
-		int maxX = 0;
-		for(int i = 0; i < nonmovable.size(); i++){
-			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX() + 5, player.getRectangle().getMinY(),
-				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
-				&& !nonmovable.get(i).getPassThrough()){
-				collision = true;
-			}
-			
-			//Collision with borders
-			if(nonmovable.get(i).getRectangle().getMaxX() > maxX){
-				maxX = (int) nonmovable.get(i).getRectangle().getMaxX();
-			}
-		}
-		
-		// Collision with borders
-		if(getPlayer().getX() > maxX - 55){ //945
-			collision = true;
-		}
-		
-		if(!collision){
-			player.goRight();
-		}
-	}
-	
-	public void spacePressed(){
 		
 	}
 	
-	public void gravity(){
-		boolean collision = false;
-		for(int i = 0; i < nonmovable.size(); i++){
-			//Collision
-			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY() + gravity,
-				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())){
-				collision = true;
-			}
-		}
-	
-		if(!collision){
-			player.setY(player.getY() + gravity);
-			player.relocateRectangle(player.getX(), player.getY());
-			
-			if(gravity < GRAVITY_MAX){
-				gravity++;
-			}
-		}
-		else{
-			gravity = GRAVITY_MIN;
-		}
+	private void start(){
+		myThread = new Thread(this);
+		myThread.start();
 	}
 	
-	public void jump(){
-		player.setY(player.getY() - jumpSpeed);
-		player.relocateRectangle(player.getX(), player.getY());
-		
-		if(jumpSpeed > 0){
-			jumpSpeed--;
-		}
-		
-		for(int i = 0; i < nonmovable.size(); i++){
-			//Collision
-			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY() + 5,
-				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())){
-				jump = false;
-				jumpSpeed = JUMP_SPEED_MAX;
-			}
-		}
+	private void pause(){
+		gameEngine.setMovement(false);
+	}
+	
+	private void resume(){
+		gameEngine.setMovement(true);
+	}
+	
+	private void stop(){
+		gameEngine.setGameOver(true);
+		gameEngine.setMovement(false);
 	}
 }
