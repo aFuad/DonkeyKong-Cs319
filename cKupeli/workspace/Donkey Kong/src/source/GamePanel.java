@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -12,82 +13,27 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
-public class GamePanel extends JPanel implements Runnable{
-	private Thread myThread;
-	private GameEngine gameEngine;
+public class GamePanel extends JPanel{
+	private GUIPanelManager guiPanelManager;
+	Nonmovable [][] nonmovable = null;
+	ArrayList<Enemy> barrels = null;
+	ArrayList<FireElemental> fireElementals = null;
+	Player player = null;
 	
-	private boolean buttonW, buttonA, buttonS, buttonD, buttonSpace = false;
-
-	public GamePanel(GUIPanelManager guiPanelManager, int level) throws FileNotFoundException{
-		init(level);
+	public GamePanel(GUIPanelManager guiPanelManager) throws FileNotFoundException{
+		this.guiPanelManager = guiPanelManager;
 	}
 	
-	private void init(int level) throws FileNotFoundException{
-		gameEngine = new GameEngine(level);
-		/*
-		 * start() generates thread for GamePanel class.
-		 * I made a method because of we might want to use structure of this class again in some other class such as PauseMenu.
-		 */
-		start();
-		
-		/*
-		 * initializeKeyBindings() decides which keyboard inputs we are going to use and as in the name initialize them
-		 * Same reason as start() method. We might want to use KeyHandler inner class and this method in other GUI parts such as MainMenu.
-		 */
-		initializingKeyBindings();
-		gameEngine.createBarrel(2, 2, EnemyType.FALLING_BARREL);
+	public void notified(Nonmovable[][] nonmovable, ArrayList<Enemy> barrels, ArrayList<FireElemental> fireElementals, Player player){
+		this.nonmovable = nonmovable;
+		this.barrels = barrels;
+		this.fireElementals = fireElementals;
+		this.player = player;
+		repaint();
 	}
 	
-	@Override
-	public void run() {
-		// TODO Auto-generated method stub
-		while(!gameEngine.isGameOver()){ //While game is not over
-			if(gameEngine.isMovement()){ //While game is running
-				//Keybindings boolean values
-				if(buttonW){
-					gameEngine.wPressed();
-				}
-				
-				if(buttonA){
-					gameEngine.aPressed();
-				}
-				
-				if(buttonS){
-					gameEngine.sPressed();
-				}
-				
-				if(buttonD){
-					gameEngine.dPressed();
-				}
-				
-				if(buttonSpace){
-					gameEngine.spacePressed();
-				}
-				
-				if(gameEngine.isJump()){
-					gameEngine.jump();
-				}
-				gameEngine.gravity();
-				
-				for(int i = 0; i < gameEngine.getBarrelList().size(); i++){
-					//Barrels will be move here
-				}
-			}
-			else if(!gameEngine.isMovement()){ //While game is paused
-				//Pause menu initialization if needed
-				//Draw pause menu or go pause menu, depends on initialization
-			}
-			
-			try{
-				Thread.sleep(20); //Rendering speed of the thread 100
-			}
-			catch (InterruptedException e){
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			repaint();
-		}
-		//Go back to main menu
+	public void returnMainMenu(){
+		guiPanelManager.setMainMenuPanelVisible();
 	}
 	
 	/*
@@ -100,190 +46,43 @@ public class GamePanel extends JPanel implements Runnable{
 	public void paintComponent(Graphics g){
 		super.paintComponent(g);
 		setBackground(Color.BLACK);
+		
 		//Test
 		for(int y = 0; y < 20; y++){
 			for(int x = 0; x < 20; x++){
 				//Commented part below aim to test rectangles of nonmovable objects
-				if(gameEngine.getMapObject(x, y) instanceof Platform){
-					g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
+				if(nonmovable[x][y] instanceof Platform){
+					g.drawImage(nonmovable[x][y].getImage(), nonmovable[x][y].getX(), nonmovable[x][y].getY(), this);
 				}
-				else if(gameEngine.getMapObject(x, y) instanceof Ladder){
-					g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
+				else if(nonmovable[x][y] instanceof Ladder){
+					g.drawImage(nonmovable[x][y].getImage(), nonmovable[x][y].getX(), nonmovable[x][y].getY(), this);
 				}
 				else if(y < 19){ //If y = 19, then inside the if statement we check y = 20 and program gives outOfBound error
-					if(gameEngine.getMapObject(x, y) instanceof Girl && gameEngine.getMapObject(x, y + 1) instanceof Girl){ //To create girl, we need 2 blocks because monkey takes 50x100 space
-						g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
+					if(nonmovable[x][y] instanceof Girl && nonmovable[x][y + 1] instanceof Girl){ //To create girl, we need 2 blocks because monkey takes 50x100 space
+						g.drawImage(nonmovable[x][y].getImage(), nonmovable[x][y].getX(), nonmovable[x][y].getY(), this);
 					}
-					else if(gameEngine.getMapObject(x, y) instanceof Oil && gameEngine.getMapObject(x, y + 1) instanceof Oil){ //To create oil, we need 2 blocks because monkey takes 50x100 space
-						g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
+					else if(nonmovable[x][y] instanceof Oil && nonmovable[x][y + 1] instanceof Oil){ //To create oil, we need 2 blocks because monkey takes 50x100 space
+						g.drawImage(nonmovable[x][y].getImage(), nonmovable[x][y].getX(), nonmovable[x][y].getY(), this);
 					}
 					else if(x < 19){ //If x = 19, then inside the if statement we check x = 20 and program gives outOfBound error.
 						//To create monkey, we need 4 blocks because monkey takes 100x100 space
-						if(gameEngine.getMapObject(x, y) instanceof Monkey && gameEngine.getMapObject(x + 1, y) instanceof Monkey && gameEngine.getMapObject(x, y + 1) instanceof Monkey && gameEngine.getMapObject(x + 1, y + 1) instanceof Monkey){
-							g.drawImage(gameEngine.getMapObject(x, y).getImage(), gameEngine.getMapObject(x, y).getX(), gameEngine.getMapObject(x, y).getY(), this);
+						if(nonmovable[x][y] instanceof Monkey && nonmovable[x + 1][y] instanceof Monkey && nonmovable[x][y + 1] instanceof Monkey && nonmovable[x + 1][y + 1] instanceof Monkey){
+							g.drawImage(nonmovable[x][y].getImage(), nonmovable[x][y].getX(), nonmovable[x][y].getY(), this);
 						}
 					}
 				}
 			}
 		}
-		
-		for(int i = 0; i < gameEngine.getBarrelList().size(); i++){
-			g.drawImage(gameEngine.getBarrelList().get(i).getImage(), gameEngine.getBarrelList().get(i).getX(), gameEngine.getBarrelList().get(i).getY(), this);
+		for(int i = 0; i < barrels.size(); i++){
+			g.drawImage(barrels.get(i).getImage(), barrels.get(i).getX(), barrels.get(i).getY(), this);
 		}
 		
-		for(int i = 0; i < gameEngine.getFireElementalList().size(); i++){
-			g.drawImage(gameEngine.getFireElementalList().get(i).getImage(), gameEngine.getFireElementalList().get(i).getX(), gameEngine.getFireElementalList().get(i).getY(), this);
+		for(int i = 0; i < fireElementals.size(); i++){
+			g.drawImage(fireElementals.get(i).getImage(), fireElementals.get(i).getX(), fireElementals.get(i).getY(), this);
 		}
 		
-		g.drawImage(gameEngine.getPlayer().getImage(), gameEngine.getPlayer().getX(), gameEngine.getPlayer().getY(), this);
+		g.drawImage(player.getImage(), player.getX(), player.getY(), this);
 		//Comment below aim to test rectangle of player
-		g.drawRect((int)(gameEngine.getPlayer().getRectangle().getMinX() + 15), (int)(gameEngine.getPlayer().getRectangle().getMinY()), (int)(gameEngine.getPlayer().getRectangle().getMaxX() - gameEngine.getPlayer().getRectangle().getMinX() - 40), (int)(gameEngine.getPlayer().getRectangle().getMaxX() - gameEngine.getPlayer().getRectangle().getMinX()));
-		g.drawRect((int)(gameEngine.getPlayer().getRectangle().getMinX() + 25), (int)(gameEngine.getPlayer().getRectangle().getMinY()), (int)(gameEngine.getPlayer().getRectangle().getMaxX() - gameEngine.getPlayer().getRectangle().getMinX() - 40), (int)(gameEngine.getPlayer().getRectangle().getMaxX() - gameEngine.getPlayer().getRectangle().getMinX()));
-	}
-	
-	public void initializingKeyBindings(){
-		InputMap inputMapPause = this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-		ActionMap actionMapPause = this.getActionMap();
-		
-		/*
-		 * 1st parameter is the name of the keyboard input.
-		 * ESCAPE = ESC button
-		 * W = W button
-		 * A = A button
-		 * S = S button
-		 * D = D button
-		 * SPACE = Space Button
-		 * 2nd parameter is the name of the action which indicates pressing a button which we will use with ActionMap object.
-		 */
-		
-		/* 
-		 * We decided to use release for ESCAPE to prevent overlapping.
-		 * We want player to press once to pause or resume the game and released is a perfect fit for that action.
-		 */
-		inputMapPause.put(KeyStroke.getKeyStroke("released ESCAPE"), "escapeReleased");
-		actionMapPause.put("escapeReleased", new KeyHandler("escape"));
-		
-		inputMapPause.put(KeyStroke.getKeyStroke("W"), "wPressed");
-		actionMapPause.put("wPressed", new KeyHandler("wPressed"));
-		
-		inputMapPause.put(KeyStroke.getKeyStroke("released W"), "wReleased");
-		actionMapPause.put("wReleased", new KeyHandler("wReleased"));
-		
-		inputMapPause.put(KeyStroke.getKeyStroke("A"), "aPressed");
-		actionMapPause.put("aPressed", new KeyHandler("aPressed"));
-		
-		inputMapPause.put(KeyStroke.getKeyStroke("released A"), "aReleased");
-		actionMapPause.put("aReleased", new KeyHandler("aReleased"));
-		
-		inputMapPause.put(KeyStroke.getKeyStroke("D"), "dPressed");
-		actionMapPause.put("dPressed", new KeyHandler("dPressed"));
-		
-		inputMapPause.put(KeyStroke.getKeyStroke("released D"), "dReleased");
-		actionMapPause.put("dReleased", new KeyHandler("dReleased"));
-		
-		inputMapPause.put(KeyStroke.getKeyStroke("S"), "sPressed");
-		actionMapPause.put("sPressed", new KeyHandler("sPressed"));
-		
-		inputMapPause.put(KeyStroke.getKeyStroke("released S"), "sReleased");
-		actionMapPause.put("sReleased", new KeyHandler("sReleased"));
-		
-		inputMapPause.put(KeyStroke.getKeyStroke("SPACE"), "spacePressed");
-		actionMapPause.put("spacePressed", new KeyHandler("spacePressed"));
-		
-		inputMapPause.put(KeyStroke.getKeyStroke("released SPACE"), "spaceReleased");
-		actionMapPause.put("spaceReleased", new KeyHandler("spaceReleased"));
-	}
-	
-	//Nested class to implement KeyBindings
-	class KeyHandler extends AbstractAction{
-		String name;
-		
-		public KeyHandler(String name){
-			this.name = name;
-		}
-		
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			// TODO Auto-generated method stub
-			if(name == "escape"){
-				System.out.println("Escape Pressed");
-				if(gameEngine.isMovement()){ //While game is running
-					pause();
-				}
-				else if(!gameEngine.isMovement()){ //While game is paused
-					resume();
-				}
-			}
-			else if(name == "wPressed"){
-				if(gameEngine.isMovement()){ //While game is running
-					buttonW = true;
-				}
-			}
-			else if(name == "wReleased"){
-				if(gameEngine.isMovement()){ //While game is running
-					buttonW = false;
-				}
-			}
-			else if(name == "aPressed"){
-				if(gameEngine.isMovement()){ //While game is running
-					buttonA = true;
-				}
-			}
-			else if(name == "aReleased"){
-				if(gameEngine.isMovement()){ //While game is running
-					buttonA = false;
-				}
-			}
-			else if(name == "sPressed"){
-				if(gameEngine.isMovement()){ //While game is running
-					buttonS = true;
-				}
-			}
-			else if(name == "sReleased"){
-				if(gameEngine.isMovement()){ //While game is running
-					buttonS = false;
-				}
-			}
-			else if(name == "dPressed"){
-				if(gameEngine.isMovement()){ //While game is running
-					buttonD = true;
-				}
-			}
-			else if(name == "dReleased"){
-				if(gameEngine.isMovement()){ //While game is running
-					buttonD = false;
-				}
-			}
-			else if(name == "spacePressed"){
-				if(gameEngine.isMovement()){ //While game is running
-					buttonSpace = true;
-				}
-			}
-			else if(name == "spaceReleased"){
-				if(gameEngine.isMovement()){ //While game is running
-					buttonSpace = false;
-				}
-			}
-			
-		}
-		
-	}
-	
-	private void start(){
-		myThread = new Thread(this);
-		myThread.start();
-	}
-	
-	private void pause(){
-		gameEngine.setMovement(false);
-	}
-	
-	private void resume(){
-		gameEngine.setMovement(true);
-	}
-	
-	private void stop(){
-		gameEngine.setGameOver(true);
-		gameEngine.setMovement(false);
+		//g.drawRect((int)(gameEngine.getPlayer().getRectangle().getMinX() + 15), (int)(gameEngine.getPlayer().getRectangle().getMinY()), (int)(gameEngine.getPlayer().getRectangle().getMaxX() - gameEngine.getPlayer().getRectangle().getMinX() - 40), (int)(gameEngine.getPlayer().getRectangle().getMaxX() - gameEngine.getPlayer().getRectangle().getMinX()));
 	}
 }
