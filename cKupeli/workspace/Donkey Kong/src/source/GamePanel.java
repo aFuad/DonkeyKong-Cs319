@@ -15,16 +15,16 @@ import javax.swing.KeyStroke;
 
 public class GamePanel extends JPanel{
 	private GUIPanelManager guiPanelManager;
-	Nonmovable [][] nonmovable = null;
-	ArrayList<Enemy> barrels = null;
-	ArrayList<FireElemental> fireElementals = null;
-	Player player = null;
+	private ArrayList<ArrayList<Nonmovable>> nonmovable;
+	private ArrayList<Enemy> barrels;
+	private ArrayList<FireElemental> fireElementals;
+	private Player player;
 	
 	public GamePanel(GUIPanelManager guiPanelManager) throws FileNotFoundException{
 		this.guiPanelManager = guiPanelManager;
 	}
 	
-	public void notified(Nonmovable[][] nonmovable, ArrayList<Enemy> barrels, ArrayList<FireElemental> fireElementals, Player player){
+	public void notified(ArrayList<ArrayList<Nonmovable>> nonmovable, ArrayList<Enemy> barrels, ArrayList<FireElemental> fireElementals, Player player){
 		this.nonmovable = nonmovable;
 		this.barrels = barrels;
 		this.fireElementals = fireElementals;
@@ -48,31 +48,34 @@ public class GamePanel extends JPanel{
 		setBackground(Color.BLACK);
 		
 		//Test
-		for(int y = 0; y < 20; y++){
-			for(int x = 0; x < 20; x++){
-				//Commented part below aim to test rectangles of nonmovable objects
-				if(nonmovable[x][y] instanceof Platform){
-					g.drawImage(nonmovable[x][y].getImage(), nonmovable[x][y].getX(), nonmovable[x][y].getY(), this);
+		for(int y = 0; y < nonmovable.size(); y++){
+			ArrayList<Nonmovable> innerList = nonmovable.get(y);
+			ArrayList<Nonmovable> innerListNextRow = null;
+			if(y < nonmovable.size() - 1){
+				innerListNextRow = nonmovable.get(y + 1);
+			}
+			for(int x = 0; x < innerList.size(); x++){
+				if(innerList.get(x) instanceof Platform){
+					g.drawImage(innerList.get(x).getImage(), innerList.get(x).getX(), innerList.get(x).getY(), this);
 				}
-				else if(nonmovable[x][y] instanceof Ladder){
-					g.drawImage(nonmovable[x][y].getImage(), nonmovable[x][y].getX(), nonmovable[x][y].getY(), this);
+				else if(innerList.get(x) instanceof Ladder){
+					g.drawImage(innerList.get(x).getImage(), innerList.get(x).getX(), innerList.get(x).getY(), this);
 				}
-				else if(y < 19){ //If y = 19, then inside the if statement we check y = 20 and program gives outOfBound error
-					if(nonmovable[x][y] instanceof Girl && nonmovable[x][y + 1] instanceof Girl){ //To create girl, we need 2 blocks because monkey takes 50x100 space
-						g.drawImage(nonmovable[x][y].getImage(), nonmovable[x][y].getX(), nonmovable[x][y].getY(), this);
+				else if(innerListNextRow != null){
+					if(innerList.get(x) instanceof Girl && innerListNextRow.get(x) instanceof Girl){
+						g.drawImage(innerList.get(x).getImage(), innerList.get(x).getX(), innerList.get(x).getY(), this);
 					}
-					else if(nonmovable[x][y] instanceof Oil && nonmovable[x][y + 1] instanceof Oil){ //To create oil, we need 2 blocks because monkey takes 50x100 space
-						g.drawImage(nonmovable[x][y].getImage(), nonmovable[x][y].getX(), nonmovable[x][y].getY(), this);
+					else if(innerList.get(x) instanceof Oil && innerListNextRow.get(x) instanceof Oil){
+						g.drawImage(innerList.get(x).getImage(), innerList.get(x).getX(), innerList.get(x).getY(), this);
 					}
-					else if(x < 19){ //If x = 19, then inside the if statement we check x = 20 and program gives outOfBound error.
-						//To create monkey, we need 4 blocks because monkey takes 100x100 space
-						if(nonmovable[x][y] instanceof Monkey && nonmovable[x + 1][y] instanceof Monkey && nonmovable[x][y + 1] instanceof Monkey && nonmovable[x + 1][y + 1] instanceof Monkey){
-							g.drawImage(nonmovable[x][y].getImage(), nonmovable[x][y].getX(), nonmovable[x][y].getY(), this);
-						}
+					else if(innerList.get(x) instanceof Monkey && innerList.get(x + 1) instanceof Monkey
+						&& innerListNextRow.get(x) instanceof Monkey && innerListNextRow.get(x + 1) instanceof Monkey){
+						g.drawImage(innerList.get(x).getImage(), innerList.get(x).getX(), innerList.get(x).getY(), this);
 					}
 				}
 			}
 		}
+		
 		for(int i = 0; i < barrels.size(); i++){
 			g.drawImage(barrels.get(i).getImage(), barrels.get(i).getX(), barrels.get(i).getY(), this);
 		}
@@ -83,6 +86,7 @@ public class GamePanel extends JPanel{
 		
 		g.drawImage(player.getImage(), player.getX(), player.getY(), this);
 		//Comment below aim to test rectangle of player
-		//g.drawRect((int)(gameEngine.getPlayer().getRectangle().getMinX() + 15), (int)(gameEngine.getPlayer().getRectangle().getMinY()), (int)(gameEngine.getPlayer().getRectangle().getMaxX() - gameEngine.getPlayer().getRectangle().getMinX() - 40), (int)(gameEngine.getPlayer().getRectangle().getMaxX() - gameEngine.getPlayer().getRectangle().getMinX()));
+		g.drawRect((int)(player.getRectangle().getMinX() + 5), (int)(player.getRectangle().getMinY()), (int)(player.getRectangle().getMaxX() - player.getRectangle().getMinX() - 45), (int)(player.getRectangle().getMaxX() - player.getRectangle().getMinX()));
+		g.drawRect((int)(player.getRectangle().getMinX() + 40), (int)(player.getRectangle().getMinY()), (int)(player.getRectangle().getMaxX() - player.getRectangle().getMinX() - 45), (int)(player.getRectangle().getMaxX() - player.getRectangle().getMinX()));
 	}
 }
