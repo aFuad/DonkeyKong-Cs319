@@ -4,9 +4,9 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 public class GameEngine {
-	private static int totalScore = 0;
+	private int totalScore = 0;
 	private int score = 0;
-	private static int remainingLives = 3;
+	private int remainingLives = 3;
 	private int currentLevel;
 	
 	private final int JUMP_SPEED_MAX = 20; //Represents maximum limit of vertical speed of jumping
@@ -23,7 +23,7 @@ public class GameEngine {
 	 * During run time map 2D array will change because we do not want user or anyone else to change data inside our level.txt file.
 	 * Therefore I did not put any set method for MapData object, even if we want to change it we cannot.
 	 */
-	private Nonmovable[][] map = new Nonmovable[20][20];
+	private ArrayList<ArrayList<Nonmovable>> map = new ArrayList<ArrayList<Nonmovable>>();
 	
 	 /* 
 	  * boolean gameOver
@@ -79,44 +79,54 @@ public class GameEngine {
 	
 	//Load the map as objects
 	private void loadMap(){
-		for(int y = 0; y < 20; y++){
-			for(int x = 0; x < 20; x++){
-				if(myMapData.getMapData(x, y) == "Space"){
-					map[x][y] = null;
+		for(int y = 0; y < myMapData.getMapData().size(); y++){
+			ArrayList<String> innerListString = myMapData.getMapData().get(y);
+			ArrayList<Nonmovable> innerListNonmovable = new ArrayList<Nonmovable>();
+			for(int x = 0; x < innerListString.size(); x++){
+				if(innerListString.get(x) == "Space"){
+					innerListNonmovable.add(null);
 				}
-				else if(myMapData.getMapData(x, y) == "Platform"){
-					map[x][y] = new Platform(x, y);
-					nonmovable.add(getMapObject(x, y));
+				else if(innerListString.get(x) == "Platform"){
+					Platform platform = new Platform(x, y);
+					innerListNonmovable.add(platform);
+					nonmovable.add(platform);
 				}
-				else if(myMapData.getMapData(x, y) == "Ladder"){
-					map[x][y] = new Ladder(x, y);
-					nonmovable.add(getMapObject(x, y));
+				else if(innerListString.get(x) == "Ladder"){
+					Ladder ladder = new Ladder(x, y);
+					innerListNonmovable.add(ladder);
+					nonmovable.add(ladder);
 				}
-				else if(myMapData.getMapData(x, y) == "Monkey"){
-					map[x][y] = new Monkey(x, y);
-					nonmovable.add(getMapObject(x, y));
+				else if(innerListString.get(x) == "Monkey"){
+					Monkey monkey = new Monkey(x, y);
+					innerListNonmovable.add(monkey);
+					nonmovable.add(monkey);
 				}
-				else if(myMapData.getMapData(x, y) == "Girl"){
-					map[x][y] = new Girl(x, y);
-					nonmovable.add(getMapObject(x, y));
+				else if(innerListString.get(x) == "Girl"){
+					Girl girl = new Girl(x, y);
+					innerListNonmovable.add(girl);
+					nonmovable.add(girl);
 				}
-				else if(myMapData.getMapData(x, y) == "Oil"){
+				else if(innerListString.get(x) == "Oil"){
 					oil = new Oil(x, y);
-					map[x][y] = oil;
-					nonmovable.add(getMapObject(x, y));
+					innerListNonmovable.add(oil);
+					nonmovable.add(oil);
 				}
-				else if(myMapData.getMapData(x, y) == "ExtraLife"){
-					map[x][y] = new ExtraLife(x, y);
-					nonmovable.add(getMapObject(x, y));
+				else if(innerListString.get(x) == "Extra Life"){
+					ExtraLife extraLife = new ExtraLife(x, y);
+					innerListNonmovable.add(extraLife);
+					nonmovable.add(extraLife);
 				}
-				else if(myMapData.getMapData(x, y) == "Hammer"){
-					map[x][y] = new Hammer(x, y);
-					nonmovable.add(getMapObject(x, y));
+				else if(innerListString.get(x) == "Hammer"){
+					Hammer hammer = new Hammer(x, y);
+					innerListNonmovable.add(hammer);
+					nonmovable.add(hammer);
 				}
-				else if(myMapData.getMapData(x, y) == "Jumpman"){
+				else if(innerListString.get(x).equals("Jumpman")){
 					player = new Player(x, y);
+					innerListNonmovable.add(null);
 				}
 			}
+			map.add(innerListNonmovable);
 		}
 	}
 	
@@ -221,9 +231,9 @@ public class GameEngine {
 	public void setMovement(boolean movement) {
 		this.movement = movement;
 	}
-
-	public Nonmovable getMapObject(int x, int y) {
-		return map[x][y];
+	
+	public ArrayList<ArrayList<Nonmovable>> getMapObjects(){
+		return map;
 	}
 	
 	public Player getPlayer(){
@@ -264,9 +274,9 @@ public class GameEngine {
 			}
 			*/
 			//2nd solution
-			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX() + 15, player.getRectangle().getMinY(),
+			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX() + 5, player.getRectangle().getMinY(),
 				player.getRectangle().getMaxX() - player.getRectangle().getMinX() - 40, player.getRectangle().getMaxY() - player.getRectangle().getMinY())
-				&& nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX() + 25, player.getRectangle().getMinY(),
+				&& nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX() + 40, player.getRectangle().getMinY(),
 				player.getRectangle().getMaxX() - player.getRectangle().getMinX() - 40, player.getRectangle().getMaxY() - player.getRectangle().getMinY())
 				&& nonmovable.get(i) instanceof Ladder){
 				climb = true;
@@ -278,7 +288,7 @@ public class GameEngine {
 			player.goUp();
 		}
 		
-		if(!collision && jumpable()){
+		if(!collision && jumpable() && climb == false){
 			jump = true;
 		}
 	}
@@ -388,13 +398,13 @@ public class GameEngine {
 		for(int i = 0; i < nonmovable.size(); i++){
 			//Collision
 			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY() + gravity,
-				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
-				&& !(nonmovable.get(i) instanceof Ladder)){
+				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())){
 				collision = true;
 			}
-			else if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX() + 15, player.getRectangle().getMinY(),
+			//Player is climbing. Even though there is no collision, we do not want to use gravity on the Jumpman
+			else if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX() + 5, player.getRectangle().getMinY(),
 				player.getRectangle().getMaxX() - player.getRectangle().getMinX() - 40, player.getRectangle().getMaxY() - player.getRectangle().getMinY())
-				&& nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX() + 25, player.getRectangle().getMinY(),
+				&& nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX() + 40, player.getRectangle().getMinY(),
 				player.getRectangle().getMaxX() - player.getRectangle().getMinX() - 40, player.getRectangle().getMaxY() - player.getRectangle().getMinY())
 				&& nonmovable.get(i) instanceof Ladder){
 				collision = true;
