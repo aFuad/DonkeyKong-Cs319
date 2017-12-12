@@ -2,6 +2,7 @@ package source;
 
 import java.awt.event.ActionEvent;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -10,6 +11,8 @@ import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 
 public class Controller implements Runnable{
+	private final long FRAME_PER_SECOND = 1000 / 60; // 30 FPS
+	
 	private Thread myThread;
 	private GameEngine gameEngine;
 	private GamePanel gamePanel;
@@ -23,25 +26,27 @@ public class Controller implements Runnable{
 	private void init(GamePanel gamePanel, GameEngine gameEngine) throws FileNotFoundException{
 		this.gamePanel = gamePanel;
 		this.gameEngine = gameEngine;
-		/*
-		 * start() generates thread for GamePanel class.
-		 * I made a method because of we might want to use structure of this class again in some other class such as PauseMenu.
-		 */
-		start();
 		
 		/*
 		 * initializeKeyBindings() decides which keyboard inputs we are going to use and as in the name initialize them
 		 * Same reason as start() method. We might want to use KeyHandler inner class and this method in other GUI parts such as MainMenu.
 		 */
 		initializingKeyBindings(gamePanel);
+		
+		/*
+		 * start() generates thread for GamePanel class.
+		 * I made a method because of we might want to use structure of this class again in some other class such as PauseMenu.
+		 */
+		start();
 	}
 	
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
+		long second = 0; //Important for calculating the last time a new barrel has spawned
 		while(!gameEngine.isGameOver()){ //While game is not over
-			gamePanel.notified(gameEngine.getMapObjects(), gameEngine.getBarrelList(), gameEngine.getFireElementalList(), gameEngine.getPlayer());
 			if(gameEngine.isMovement()){ //While game is running
+				//Update
 				//Keybindings boolean values
 				if(buttonW){
 					gameEngine.wPressed();
@@ -68,24 +73,53 @@ public class Controller implements Runnable{
 				}
 				gameEngine.gravity();
 				
-				for(int i = 0; i < gameEngine.getBarrelList().size(); i++){
-					//Barrels will be move here
+				//Create a new enemy barrel
+				if(gameEngine.creatable(second)){
+					gameEngine.createBarrel(gameEngine.getBarrelSpawnX(), gameEngine.getBarrelSpawnY(), gameEngine.rollEnemyType());
+					second = 0;
 				}
+				
+				for(int i = 0; i < gameEngine.getBarrelList().size(); i++){
+					gameEngine.moveBarrel(gameEngine.getBarrelList().get(i));
+				}
+				
+				for(int i = 0; i < gameEngine.getFireElementalList().size(); i++){
+					gameEngine.moveFireElemental(gameEngine.getFireElementalList().get(i));
+				}
+				
+				if(gameEngine.getRemainingLives() == 0){
+					stop();
+				}
+				
+				gameEngine.collisionBarrelAndFireElemental(gameEngine.getBarrelList(), gameEngine.getFireElementalList());
+				
+				//Display
+				gamePanel.notified(gameEngine.getMapObjects(), gameEngine.getBarrelList(), gameEngine.getFireElementalList(), gameEngine.getPlayer());
 			}
 			else if(!gameEngine.isMovement()){ //While game is paused
+				//Bug fix
+				buttonW = false;
+				buttonA = false;
+				buttonS = false;
+				buttonD = false;
+				buttonSpace = false;
 				//Pause menu initialization if needed
 				//Draw pause menu or go pause menu, depends on initialization
 			}
 			
 			try{
-				Thread.sleep(20); //Rendering speed of the thread 100
+				Thread.sleep(FRAME_PER_SECOND);
 			}
 			catch (InterruptedException e){
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			second = second + FRAME_PER_SECOND;
+			System.out.println("Score: " + gameEngine.getScore());
+			System.out.println("Lives: " + gameEngine.getRemainingLives());
 		}
 		//Go back to main menu
+		gamePanel.goBackToMainMenu();
 	}
 	
 	public void initializingKeyBindings(GamePanel gamePanel){

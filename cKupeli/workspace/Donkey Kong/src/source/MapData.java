@@ -50,8 +50,14 @@ public class MapData {
 				else if(myObjects.equals("H")){ //Hammer is a power up
 					rows.add("Hammer"); //H indicates hammer inside matrix
 				}
+				else if(myObjects.equals("B")){ //Barrel Store stands left side or right side of the monkey, depends on the location monkey throw barrels
+					rows.add("Barrel Store"); //B indicates barrel store inside matrix
+				}
 				else if(myObjects.equals("J")){ //Jumpman is a power up
 					rows.add("Jumpman"); //J indicates Jumpman inside matrix
+				}
+				else if(myObjects.equals("C")){ //Spawn Point is a location where enemy barrels will spawns.
+					rows.add("Spawn Point"); //We were already using B, S and P. C comes from create. It indicates spawn point of barrels in that particular level.
 				}
 				
 			}
