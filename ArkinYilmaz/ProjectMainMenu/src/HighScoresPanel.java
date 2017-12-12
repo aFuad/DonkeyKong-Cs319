@@ -1,4 +1,5 @@
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
@@ -15,7 +16,7 @@ import javax.swing.SwingConstants;
 public class HighScoresPanel extends JPanel {
 	
 	private GUIPanelManager guiManager;
-	private JLabel returnLabel;
+	private JLabel returnLabel, titleLabel , one, two, three, four, five;
 	private int currentOption;
 
 	public HighScoresPanel(GUIPanelManager guiManager) {
@@ -23,11 +24,52 @@ public class HighScoresPanel extends JPanel {
 		initializeKeyBindings();
 		this.guiManager = guiManager;
 		currentOption = 0;
+		
+		titleLabel = new JLabel("HIGHSCORES");
+		titleLabel.setForeground(MainMenu.strColor);
+		titleLabel.setFont(new Font("Press Start 2P", Font.BOLD,60));
+		titleLabel.setSize(650, 100);
+		titleLabel.setLocation(180, 40);
+		add(titleLabel);
+		
+		one = new JLabel("1.");
+		one.setForeground(MainMenu.strColor);
+		one.setFont(new Font("Press Start 2P", Font.BOLD,60));
+		one.setSize(285, 60);
+		one.setLocation(100, 200);
+		add(one);
+		
+		two = new JLabel("2.");
+		two.setForeground(MainMenu.strColor);
+		two.setFont(new Font("Press Start 2P", Font.BOLD,60));
+		two.setSize(285, 60);
+		two.setLocation(100, 330);
+		add(two);
+		
+		three = new JLabel("3.");
+		three.setForeground(MainMenu.strColor);
+		three.setFont(new Font("Press Start 2P", Font.BOLD,60));
+		three.setSize(285, 60);
+		three.setLocation(100, 460);
+		add(three);
+		
+		four = new JLabel("4.");
+		four.setForeground(MainMenu.strColor);
+		four.setFont(new Font("Press Start 2P", Font.BOLD,60));
+		four.setSize(285, 60);
+		four.setLocation(100, 590);
+		add(four);
+		
+		five = new JLabel("5.");
+		five.setForeground(MainMenu.strColor);
+		five.setFont(new Font("Press Start 2P", Font.BOLD,60));
+		five.setSize(285, 60);
+		five.setLocation(100, 720);
+		add(five);
 
 		returnLabel = new JLabel("RETURN");
 		returnLabel.setForeground(MainMenu.highlighter);
 		returnLabel.setFont(MainMenu.optionsFont);
-		returnLabel.setHorizontalAlignment(SwingConstants.CENTER);
 		returnLabel.setSize(285, 45);
 		returnLabel.setLocation(355, 850);
 		add(returnLabel);

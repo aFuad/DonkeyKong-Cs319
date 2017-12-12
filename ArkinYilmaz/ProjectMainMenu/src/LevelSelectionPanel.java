@@ -128,17 +128,17 @@ public class LevelSelectionPanel extends JPanel {
 				if(currentOption == 0) {
 					System.out.println("Level1 is selected");
 					level = 1;
-					guiManager.setGamePanelVisible(level);
+					//guiManager.setGamePanelVisible(level);
 				}
 				else if(currentOption == 1) {
 					System.out.println("Level2 is selected");
 					level = 2;
-					guiManager.setGamePanelVisible(level);
+					//guiManager.setGamePanelVisible(level);
 				}
 				else if(currentOption == 2) {
 					System.out.println("Level3 is selected");
 					level = 3;
-					guiManager.setGamePanelVisible(level);
+					//guiManager.setGamePanelVisible(level);
 				}
 				if(currentOption == 3) {
 					guiManager.setMainMenuPanelVisible();

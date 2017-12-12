@@ -1,5 +1,5 @@
 import java.awt.Color;
-import java.awt.GridLayout;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
@@ -16,28 +16,57 @@ import javax.swing.KeyStroke;
 public class OptionsPanel extends JPanel{
 	
 	private GUIPanelManager guiManager;
-	private JLabel returnLabel;
+	private JLabel returnLabel, titleLabel, soundLabel, helpLabel, creditsLabel;
 	private int currentOption;
-	//private final int GRID_HEIGHT = 6;
-	//private final int GRID_WIDTH = 1;
-
+	protected static boolean soundOn = true;
+	
 	public OptionsPanel(GUIPanelManager guiManager) {
 		
 		initializeKeyBindings();
 		this.guiManager = guiManager;
 		currentOption = 0;
 		
+		titleLabel = new JLabel("OPTIONS");
+		titleLabel.setForeground(MainMenu.strColor);
+		titleLabel.setFont(new Font("Press Start 2P", Font.BOLD,60));
+		titleLabel.setSize(650, 100);
+		titleLabel.setLocation(280, 40);
+		add(titleLabel);
 		
+		if(soundOn) {
+			soundLabel = new JLabel("SOUND:ON");
+		}
+		else {
+			soundLabel = new JLabel("SOUND:OFF");
+		}
+		
+		soundLabel.setForeground(MainMenu.highlighter);
+		soundLabel.setFont(MainMenu.optionsFont);
+		soundLabel.setSize(450, 60);
+		soundLabel.setLocation(100, 250);
+		add(soundLabel);
+		
+		helpLabel = new JLabel("HELP");
+		helpLabel.setForeground(MainMenu.strColor);
+		helpLabel.setFont(MainMenu.optionsFont);
+		helpLabel.setSize(285, 60);
+		helpLabel.setLocation(100, 380);
+		add(helpLabel);
+		
+		creditsLabel = new JLabel("SHOW CREDITS");
+		creditsLabel.setForeground(MainMenu.strColor);
+		creditsLabel.setFont(MainMenu.optionsFont);
+		creditsLabel.setSize(600, 60);
+		creditsLabel.setLocation(100, 510);
+		add(creditsLabel);
 		
 		returnLabel = new JLabel("RETURN");
-		returnLabel.setForeground(MainMenu.highlighter);
+		returnLabel.setForeground(MainMenu.strColor);
 		returnLabel.setFont(MainMenu.optionsFont);
-		//returnLabel.setHorizontalAlignment(SwingConstants.CENTER);
 		returnLabel.setSize(285, 45);
 		returnLabel.setLocation(355, 850);
 		add(returnLabel);
 		
-		//setPreferredSize(new Dimension(750,750));
 		setBackground(Color.BLACK);
 		setLayout(null);
 	}
@@ -68,39 +97,58 @@ public class OptionsPanel extends JPanel{
 		public void actionPerformed(ActionEvent e) {
 			if(name == "enter"){
 				if(currentOption == 0) {
-					guiManager.setMainMenuPanelVisible();
+					if(soundLabel.getText().equals("SOUND:ON")) {
+						soundOn = false;
+						soundLabel.setText("SOUND:OFF");
+						System.out.println("Sound is off");
+						
+					}
+					else {
+						soundOn = true;
+						soundLabel.setText("SOUND:ON");
+						System.out.println("Sound is on");
+					}
+				}
+				else if(currentOption == 1) {
+					System.out.println("Help pressed");
+				}
+				else if(currentOption == 2) {
+					System.out.println("Show credits pressed");
+				}
+				else if(currentOption == 3) {
 					System.out.println("Return(Options) pressed");
+					guiManager.setMainMenuPanelVisible();
 				}
 			}
-			/*
+			
 			else if(name == "up") {
 				currentOption--;
 	        	
 	        	if(currentOption == 0) {
-	        		options.setForeground(strColor);
-	        		play.setForeground(highlighter);
+	        		helpLabel.setForeground(MainMenu.strColor);
+	        		soundLabel.setForeground(MainMenu.highlighter);
 	        	}
 	        	
 	        	else if(currentOption == 1) {
-	        		highscores.setForeground(strColor);
-	     			options.setForeground(highlighter);
+	        		creditsLabel.setForeground(MainMenu.strColor);
+	        		helpLabel.setForeground(MainMenu.highlighter);
 	     		}
 	        	
 	     		else if(currentOption == 2) {
-	     			quit.setForeground(strColor);
-	     			highscores.setForeground(highlighter);
+	     			returnLabel.setForeground(MainMenu.strColor);
+	     			creditsLabel.setForeground(MainMenu.highlighter);
 	     		}
 	        	
 	     		else if(currentOption == 3){
-	     			play.setForeground(strColor);
-	     			quit.setForeground(highlighter);
+	     			soundLabel.setForeground(MainMenu.strColor);
+	     			returnLabel.setForeground(MainMenu.highlighter);
 		     	}
 	     		
 	        	//check bounds
         		if(currentOption < 0) {
         			currentOption = 3;
-        			play.setForeground(strColor);
-        			quit.setForeground(highlighter);
+        			soundLabel.setForeground(MainMenu.strColor);
+        			returnLabel.setForeground(MainMenu.highlighter);
         		}
 			}
 			
@@ -108,32 +156,32 @@ public class OptionsPanel extends JPanel{
 				currentOption++;
 	        	
 	        	if(currentOption == 0) {
-	        		quit.setForeground(strColor);
-	        		play.setForeground(highlighter);
+	        		returnLabel.setForeground(MainMenu.strColor);
+	        		soundLabel.setForeground(MainMenu.highlighter);
 	        	}
 	        		
 	        	else if(currentOption == 1) {
-	        		play.setForeground(strColor);
-	        		options.setForeground(highlighter);
+	        		soundLabel.setForeground(MainMenu.strColor);
+	        		helpLabel.setForeground(MainMenu.highlighter);
 	     		}
 	        	
 	     		else if(currentOption == 2) {
-	     			options.setForeground(strColor);
-	     			highscores.setForeground(highlighter);
+	     			helpLabel.setForeground(MainMenu.strColor);
+	     			creditsLabel.setForeground(MainMenu.highlighter);
 	     		}
 	        	
 	     		else if(currentOption == 3){
-	     			highscores.setForeground(strColor);
-	     			quit.setForeground(highlighter);
+	     			creditsLabel.setForeground(MainMenu.strColor);
+	     			returnLabel.setForeground(MainMenu.highlighter);
 	     		}
 	        	
 	        	//check bounds
 	        	if(currentOption > 3) {
 	        		currentOption = 0;
-	        		quit.setForeground(strColor);
-	        		play.setForeground(highlighter);
+	        		returnLabel.setForeground(MainMenu.strColor);
+	        		soundLabel.setForeground(MainMenu.highlighter);
 	        	}
-			}*/	
+			}	
 		}
 	}	
 }
