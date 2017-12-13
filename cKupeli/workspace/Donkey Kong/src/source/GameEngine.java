@@ -5,8 +5,9 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 public class GameEngine {
+	private int totalScore;
 	private int score;
-	private int remainingLives = 3;
+	private int remainingLives;
 	private int level;
 	
 	/*
@@ -49,12 +50,6 @@ public class GameEngine {
 	
 	//Check whether or not user pressed W while the Jumpman can jump
 	private boolean jump;
-	
-	/*
-	 * During run time map 2D array will change because we do not want user or anyone else to change data inside our level.txt file.
-	 * Therefore I did not put any set method for MapData object, even if we want to change it we cannot.
-	 */
-	private ArrayList<ArrayList<Nonmovable>> map = new ArrayList<ArrayList<Nonmovable>>();
 	
 	 /* 
 	  * boolean gameOver
@@ -106,7 +101,9 @@ public class GameEngine {
 		myScoreData = new ScoreData();
 		myMapData = new MapData(level);
 		this.level = level;
+		totalScore = 0;
 		score = 0;
+		remainingLives = 3;
 		loadMap();
 	}
 	
@@ -114,66 +111,95 @@ public class GameEngine {
 	private int barrelSpawnX;
 	private int barrelSpawnY;
 	
+	//Finish point x and y values which will be set inside loadMap
+	private int finishX;
+	private int finishY;
+	
 	//Load the map as objects
 	private void loadMap(){
 		for(int y = 0; y < myMapData.getMapData().size(); y++){
 			ArrayList<String> innerListString = myMapData.getMapData().get(y);
-			ArrayList<Nonmovable> innerListNonmovable = new ArrayList<Nonmovable>();
 			for(int x = 0; x < innerListString.size(); x++){
-				if(innerListString.get(x) == "Space"){
-					innerListNonmovable.add(null);
-				}
-				else if(innerListString.get(x) == "Platform"){
+				if(innerListString.get(x) == "Platform"){
 					Platform platform = new Platform(x, y);
-					innerListNonmovable.add(platform);
 					nonmovable.add(platform);
 				}
 				else if(innerListString.get(x) == "Ladder"){
 					Ladder ladder = new Ladder(x, y);
-					innerListNonmovable.add(ladder);
 					nonmovable.add(ladder);
 				}
 				else if(innerListString.get(x) == "Monkey"){
 					Monkey monkey = new Monkey(x, y);
-					innerListNonmovable.add(monkey);
 					nonmovable.add(monkey);
 				}
 				else if(innerListString.get(x) == "Girl"){
 					Girl girl = new Girl(x, y);
-					innerListNonmovable.add(girl);
 					nonmovable.add(girl);
 				}
 				else if(innerListString.get(x) == "Oil"){
 					oil = new Oil(x, y);
-					innerListNonmovable.add(oil);
 					nonmovable.add(oil);
 				}
 				else if(innerListString.get(x) == "Extra Life"){
 					ExtraLife extraLife = new ExtraLife(x, y);
-					innerListNonmovable.add(extraLife);
 					nonmovable.add(extraLife);
 				}
 				else if(innerListString.get(x) == "Hammer"){
 					Hammer hammer = new Hammer(x, y);
-					innerListNonmovable.add(hammer);
 					nonmovable.add(hammer);
+				}
+				else if(innerListString.get(x) == "Coin"){
+					Coin coin = new Coin(x, y);
+					nonmovable.add(coin);
 				}
 				else if(innerListString.get(x) == "Barrel Store"){
 					BarrelStore barrelStore = new BarrelStore(x, y);
-					innerListNonmovable.add(barrelStore);
 					nonmovable.add(barrelStore);
 				}
 				else if(innerListString.get(x).equals("Jumpman")){
 					player = new Player(x, y);
-					innerListNonmovable.add(null);
 				}
 				else if(innerListString.get(x).equals("Spawn Point")){
 					barrelSpawnX = x;
 					barrelSpawnY = y;
 				}
+				else if(innerListString.get(x).equals("Finish Point")){
+					finishX = x * 50;
+					finishY = y * 50;
+				}
 			}
-			map.add(innerListNonmovable);
 		}
+	}
+	
+	public boolean collisionWithFinishPoint(){
+		if((player.getX() == finishX) && (player.getY() == finishY)){
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean loadNextLevel(int level){
+		try {
+			myMapData = new MapData(level);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			return false;
+		}
+		
+		//Set the number of barrels and fire elementals to zero
+		barrels.clear();
+		fireElementals.clear();
+		
+		//Lit is always false at the start of the game
+		oil.setLit(false);
+		
+		player.setHammerUp(false);
+		
+		totalScore = totalScore + score;
+		this.level = level++;
+		
+		loadMap();
+		return true;
 	}
 	
 	//When players dies and he or she has enough lives to continue reload the map
@@ -190,6 +216,8 @@ public class GameEngine {
 		
 		//Lit is always false at the start of the game
 		oil.setLit(false);
+		
+		player.setHammerUp(false);
 		
 		//Set the score 0
 		score = 0;
@@ -276,8 +304,8 @@ public class GameEngine {
 		this.movement = movement;
 	}
 	
-	public ArrayList<ArrayList<Nonmovable>> getMapObjects(){
-		return map;
+	public ArrayList<Nonmovable> getMapObjects(){
+		return nonmovable;
 	}
 	
 	public Player getPlayer(){
@@ -313,6 +341,22 @@ public class GameEngine {
 		this.barrelSpawnY = barrelSpawnY;
 	}
 	
+	public int getFinishX() {
+		return finishX;
+	}
+
+	public void setFinishX(int finishX) {
+		this.finishX = finishX;
+	}
+
+	public int getFinishY() {
+		return finishY;
+	}
+
+	public void setFinishY(int finishY) {
+		this.finishY = finishY;
+	}
+
 	public EnemyType rollEnemyType(){
 		/*
 		 * Getting a number lower than 0.25 and greater than 0.75 is harder than getting greater or lower than 0.5 due to implementation of random method.
@@ -326,8 +370,14 @@ public class GameEngine {
 	
 	//Create movement for single barrel which is taken as a parameter
 	public void moveBarrel(Barrel barrel){
+		boolean falling = barrel.isFalling();
 		for(int i = 0; i < nonmovable.size(); i++){
-			if(nonmovable.get(i).getRectangle().intersects(barrel.getRectangle().getMinX(), barrel.getRectangle().getMinY() + 5,
+			if(nonmovable.get(i).getRectangle().intersects(barrel.getRectangle().getMinX(), barrel.getRectangle().getMinY(),
+				barrel.getRectangle().getMaxX() - barrel.getRectangle().getMinX(), barrel.getRectangle().getMaxY() - barrel.getRectangle().getMinY())
+				&& nonmovable.get(i) instanceof Platform){
+				barrel.setFalling(true);
+			}
+			else if(nonmovable.get(i).getRectangle().intersects(barrel.getRectangle().getMinX(), barrel.getRectangle().getMinY() + 5,
 				barrel.getRectangle().getMaxX() - barrel.getRectangle().getMinX(), barrel.getRectangle().getMaxY() - barrel.getRectangle().getMinY())
 				&& nonmovable.get(i) instanceof Platform){
 				barrel.setFalling(false);
@@ -342,22 +392,31 @@ public class GameEngine {
 			}
 		}
 		
-		if(!barrel.isFalling()){
-			boolean falling = true;
-			
-			for(int i = 0; i < nonmovable.size(); i++){
-				if(nonmovable.get(i).getRectangle().intersects(barrel.getRectangle().getMinX(), barrel.getRectangle().getMinY() + 5,
-				barrel.getRectangle().getMaxX() - barrel.getRectangle().getMinX(), barrel.getRectangle().getMaxY() - barrel.getRectangle().getMinY())){
-					falling = false;
-				}
-			}
-			
-			if(falling){
+		System.out.println(falling);
+		System.out.println(barrel.isFalling());
+		if(falling && !barrel.isFalling()){
+			if(barrel.continueFalling()){
 				barrel.setFalling(true);
 			}
 		}
 		
+		//Fall at the end of the platform
+		if(!barrel.isFalling()){
+			boolean collision = false;
+			
+			for(int i = 0; i < nonmovable.size(); i++){
+				if(nonmovable.get(i).getRectangle().intersects(barrel.getRectangle().getMinX(), barrel.getRectangle().getMinY() + 5,
+					barrel.getRectangle().getMaxX() - barrel.getRectangle().getMinX(), barrel.getRectangle().getMaxY() - barrel.getRectangle().getMinY())){
+					collision = true;
+				}
+			}
+			
+			if(!collision){
+				barrel.setFalling(true);
+			}
+		}
 		
+		//Fall from the ladder and move right/left
 		if(barrel.isFalling()){
 			barrel.fallDown();
 		}
@@ -389,7 +448,9 @@ public class GameEngine {
 	 */
 	//Create movement for single fire elemental
 	public void moveFireElemental(FireElemental fireElemental){
-		boolean collision = false;
+		boolean collisionGoUp = false;
+		boolean collisionRight = false;
+		boolean collisionLeft = false;
 		boolean goUp = false;
 		for(int i = 0; i < nonmovable.size(); i++){
 			if(nonmovable.get(i).getRectangle().intersects(fireElemental.getRectangle().getMinX() + 1, fireElemental.getRectangle().getMinY(),
@@ -405,22 +466,35 @@ public class GameEngine {
 		for(int i = 0; i < nonmovable.size(); i++){
 			if(nonmovable.get(i).getRectangle().intersects(fireElemental.getRectangle().getMinX(), fireElemental.getRectangle().getMinY() + 1,
 				fireElemental.getRectangle().getMaxX() - fireElemental.getRectangle().getMinX(), fireElemental.getRectangle().getMaxY() - fireElemental.getRectangle().getMinY())){
-				collision = true;
+				collisionGoUp = true;
+			}
+			
+			if(nonmovable.get(i).getRectangle().intersects(fireElemental.getRectangle().getMinX() + 1, fireElemental.getRectangle().getMinY(),
+				fireElemental.getRectangle().getMaxX() - fireElemental.getRectangle().getMinX(), fireElemental.getRectangle().getMaxY() - fireElemental.getRectangle().getMinY())
+				&& !nonmovable.get(i).getPassThrough()){
+				collisionRight = true;
+			}
+			
+			if(nonmovable.get(i).getRectangle().intersects(fireElemental.getRectangle().getMinX() - 1, fireElemental.getRectangle().getMinY(),
+				fireElemental.getRectangle().getMaxX() - fireElemental.getRectangle().getMinX(), fireElemental.getRectangle().getMaxY() - fireElemental.getRectangle().getMinY())
+				&& !nonmovable.get(i).getPassThrough()){
+				collisionLeft = true;
 			}
 		}
-		
-		if(goUp && climbFireElemental(fireElemental) && collision){
-			fireElemental.goUp();
+				
+		if(goUp && climbFireElemental(fireElemental) && collisionGoUp){
+			fireElemental.setGoingUp(true);
 		}
 		else{
-			if(!collision){
+			if(!collisionGoUp){
+				fireElemental.setGoingUp(false);
 				fireElemental.gravity();
 			}
-			else{
-				if(fireElemental.getRectangle().getMaxX() == 1000){ //Boundary points
+			else if(!fireElemental.isGoingUp()){
+				if(fireElemental.getRectangle().getMaxX() == 1000 || collisionRight){ //Boundary points
 					fireElemental.setDirection(Direction.LEFT);
 				}
-				else if(fireElemental.getRectangle().getMinX() == 0){ //Boundary points
+				else if(fireElemental.getRectangle().getMinX() == 0 || collisionLeft){ //Boundary points
 					fireElemental.setDirection(Direction.RIGHT);
 				}
 				
@@ -431,6 +505,10 @@ public class GameEngine {
 					fireElemental.goLeft();
 				}
 			}
+		}
+		
+		if(fireElemental.isGoingUp()){
+			fireElemental.goUp();
 		}
 		
 		collisionFireElementalAndPlayer(fireElemental);
@@ -541,11 +619,45 @@ public class GameEngine {
 		}
 		return false;
 	}
+	
+	public void collisionHammerAndPlayer(){
+		for(int i = 0; i < nonmovable.size(); i++){
+			//Collision with Hammer
+			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY(),
+				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
+				&& nonmovable.get(i) instanceof Hammer){
+				player.setHammerUp(true);
+				nonmovable.remove(i);
+				break;
+			}
+		}
+	}
+	
+	public void collisionCoinAndPlayer(){
+		for(int i = 0; i < nonmovable.size(); i++){
+			//Collision with Hammer
+			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY(),
+				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
+				&& nonmovable.get(i) instanceof Coin){
+				score = score + 1000;
+				nonmovable.remove(i);
+				break;
+			}
+		}
+	}
 
 	public void wPressed(){
 		boolean collision = false;
 		boolean climb = false;
 		for(int i = 0; i < nonmovable.size(); i++){
+			if(!(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY(),
+				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY() - 30))
+				&& nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX() + 20, player.getRectangle().getMinY(),
+				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY() - 20)
+				&& nonmovable.get(i) instanceof Ladder){
+				player.setClimbEnd(true);
+			}
+			
 			//Collision with Platform
 			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY() - 5,
 				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
@@ -567,10 +679,12 @@ public class GameEngine {
 		
 		//Go up Ladder
 		if(!collision && climb && !jump){
+			player.setClimb(true);
 			player.goUp();
 		}
 		
 		if(!collision && jumpable() && !climb){
+			player.setJump(true);
 			jump = true;
 		}
 	}
@@ -604,18 +718,12 @@ public class GameEngine {
 	
 	public void aPressed(){
 		boolean collision = false;
-		int minX = 20 * 50; //We have 20 blocks and each block takes 50 space in x.
 		for(int i = 0; i < nonmovable.size(); i++){
 			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX() - 5, player.getRectangle().getMinY(),
 				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
 				&& !nonmovable.get(i).getPassThrough()){
 				collision = true;
 				break;
-			}
-			
-			//Collision with borders
-			if(nonmovable.get(i).getRectangle().getMinX() < minX){
-				minX = (int) nonmovable.get(i).getRectangle().getMinX();
 			}
 		}
 		
@@ -658,18 +766,12 @@ public class GameEngine {
 	
 	public void dPressed(){
 		boolean collision = false;
-		int maxX = 0;
 		for(int i = 0; i < nonmovable.size(); i++){
 			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX() + 5, player.getRectangle().getMinY(),
 				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
 				&& !nonmovable.get(i).getPassThrough()){
 				collision = true;
 				break;
-			}
-			
-			//Collision with borders
-			if(nonmovable.get(i).getRectangle().getMaxX() > maxX){
-				maxX = (int) nonmovable.get(i).getRectangle().getMaxX();
 			}
 		}
 		
@@ -693,8 +795,11 @@ public class GameEngine {
 			//Collision
 			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY() + gravity,
 				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
-				&& !(nonmovable.get(i) instanceof Ladder)){
+				&& !(nonmovable.get(i) instanceof Ladder) && !(nonmovable.get(i) instanceof Hammer)){
 				collision = true;
+				player.setClimb(false);
+				player.setJump(false);
+				player.setClimbEnd(false);
 				break;
 			}
 			//Player is climbing. Even though there is no collision, we do not want to use gravity on the Jumpman
@@ -740,6 +845,16 @@ public class GameEngine {
 				player.getRectangle().getMaxY() - player.getRectangle().getMinY() + 100) && barrels.get(i).isScorable()){
 				score = score + 100;
 				barrels.get(i).setScorable(false);
+				break;
+			}
+		}
+		
+		for(int i = 0; i < fireElementals.size(); i++){
+			if(fireElementals.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY(),
+				player.getRectangle().getMaxX() - player.getRectangle().getMinX(),
+				player.getRectangle().getMaxY() - player.getRectangle().getMinY() + 100) && fireElementals.get(i).isScorable()){
+				score = score + 100;
+				fireElementals.get(i).setScorable(false);
 				break;
 			}
 		}
