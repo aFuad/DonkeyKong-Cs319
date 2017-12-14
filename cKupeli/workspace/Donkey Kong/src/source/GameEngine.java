@@ -2,6 +2,7 @@ package source;
 
 import java.awt.Rectangle;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class GameEngine {
@@ -46,7 +47,13 @@ public class GameEngine {
 	private int gravity = GRAVITY_MIN;
 	
 	//Spawn a barrel every 10 seconds
-	private final int BARREL_SPAWN_TIMER = 1000 * 10; //1000 means 1 second and 10 is the multiplier
+	private final int BARREL_SPAWN_TIMER = 1000 * 5; //1000 means 1 second and 10 is the multiplier
+	
+	//Update every object other than player, barrel, fire elemental
+	private final int UPDATE_TIMER = 1000;
+	
+	//Animation number of monkey between each barrel spawn
+	private final int MONKEY_ANIMATION_NUMBER = 10;
 	
 	//Check whether or not user pressed W while the Jumpman can jump
 	private boolean jump;
@@ -58,7 +65,7 @@ public class GameEngine {
 	  * False means game is still running
 	  * True means game is over
 	  */
-	private boolean gameOver = false;
+	private boolean gameOver;
 	
 	/*
 	 * boolean movement
@@ -67,43 +74,61 @@ public class GameEngine {
 	 * True means game is not paused
 	 * False means game is paused
 	 */
-	private boolean movement = true;
+	private boolean movement;
 	
 	/*
 	 * We store map objects inside an ArrayList as well in order to use them to implement collision.
 	 * I was planning to use ArrayList for map as well, but I end up facing some technicality inside GamePanel.
 	 */
-	private ArrayList<Nonmovable> nonmovable = new ArrayList<Nonmovable>();
+	private ArrayList<Nonmovable> nonmovable;
 	
 	/*
 	 * This ArrayList will help us to check Barrel collisions.
 	 * It will store both rolling and falling barrels
 	 */
-	private ArrayList<Barrel> barrels = new ArrayList<Barrel>();
+	private ArrayList<Barrel> barrels;
 	
 	/*
 	 * This ArrayList will help us to check FireElemental collisions.
 	 */
-	private ArrayList<FireElemental> fireElementals = new ArrayList<FireElemental>();
+	private ArrayList<FireElemental> fireElementals;
 	
 	/*
 	 * Player has an important role on our game. Therefore I need an object to reach Player easily.
 	 * We have not initialize player yet. Do not forget to do it.
 	 */
 	private Player player;
-	private Oil oil;
+	
+	//Invisible nonmovable objects in order to use for animation and collision
+	private ArrayList<Oil> oils;
+	private ArrayList<Girl> girls;
+	private ArrayList<Monkey> monkeys;	
 
 	//File Management Components
-	private ScoreData myScoreData;
-	private MapData myMapData;
+	private ScoreData scoreData;
+	private MapData mapData;
+	private UnlockData unlockData;
 	
 	public GameEngine(int level) throws FileNotFoundException{
-		myScoreData = new ScoreData();
-		myMapData = new MapData(level);
+		scoreData = new ScoreData();
+		mapData = new MapData(level);
+		unlockData = new UnlockData();
+		
 		this.level = level;
 		totalScore = 0;
 		score = 0;
 		remainingLives = 3;
+		
+		gameOver = false;
+		movement = true;
+		
+		nonmovable = new ArrayList<Nonmovable>();
+		barrels = new ArrayList<Barrel>();
+		fireElementals = new ArrayList<FireElemental>();
+		oils = new ArrayList<Oil>();
+		girls = new ArrayList<Girl>();
+		monkeys = new ArrayList<Monkey>();
+		
 		loadMap();
 	}
 	
@@ -117,8 +142,8 @@ public class GameEngine {
 	
 	//Load the map as objects
 	private void loadMap(){
-		for(int y = 0; y < myMapData.getMapData().size(); y++){
-			ArrayList<String> innerListString = myMapData.getMapData().get(y);
+		for(int y = 0; y < mapData.getMapData().size(); y++){
+			ArrayList<String> innerListString = mapData.getMapData().get(y);
 			for(int x = 0; x < innerListString.size(); x++){
 				if(innerListString.get(x) == "Platform"){
 					Platform platform = new Platform(x, y);
@@ -130,15 +155,18 @@ public class GameEngine {
 				}
 				else if(innerListString.get(x) == "Monkey"){
 					Monkey monkey = new Monkey(x, y);
+					monkeys.add(monkey);
 					nonmovable.add(monkey);
 				}
 				else if(innerListString.get(x) == "Girl"){
 					Girl girl = new Girl(x, y);
+					girls.add(girl);
 					nonmovable.add(girl);
 				}
 				else if(innerListString.get(x) == "Oil"){
-					oil = new Oil(x, y);
-					nonmovable.add(oil);
+					Oil Oil = new Oil(x, y);
+					oils.add(Oil);
+					nonmovable.add(Oil);
 				}
 				else if(innerListString.get(x) == "Extra Life"){
 					ExtraLife extraLife = new ExtraLife(x, y);
@@ -180,7 +208,8 @@ public class GameEngine {
 	
 	public boolean loadNextLevel(int level){
 		try {
-			myMapData = new MapData(level);
+			mapData = new MapData(level);
+			unlockData.setUnlock(level);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			return false;
@@ -191,12 +220,15 @@ public class GameEngine {
 		fireElementals.clear();
 		
 		//Lit is always false at the start of the game
-		oil.setLit(false);
+		for(int i = 0; i < oils.size(); i++){
+			oils.get(i).setLit(false);
+		}
 		
-		player.setHammerUp(false);
+		player.setHammer(false);
 		
 		totalScore = totalScore + score;
-		this.level = level++;
+		
+		this.level = level;
 		
 		loadMap();
 		return true;
@@ -215,16 +247,18 @@ public class GameEngine {
 		remainingLives--;
 		
 		//Lit is always false at the start of the game
-		oil.setLit(false);
+		for(int i = 0; i < oils.size(); i++){
+			oils.get(i).setLit(false);
+		}
 		
-		player.setHammerUp(false);
+		player.setHammer(false);
 		
 		//Set the score 0
 		score = 0;
 		
 		//Return player's location back to its original
-		for(int y = 0; y < myMapData.getMapData().size(); y++){
-			ArrayList<String> innerListString = myMapData.getMapData().get(y);
+		for(int y = 0; y < mapData.getMapData().size(); y++){
+			ArrayList<String> innerListString = mapData.getMapData().get(y);
 			for(int x = 0; x < innerListString.size(); x++){
 				if(innerListString.get(x).equals("Jumpman")){
 					player = new Player(x, y);
@@ -243,11 +277,6 @@ public class GameEngine {
 			FallingBarrel fallingBarrel = new FallingBarrel(x,y);
 			barrels.add(fallingBarrel);
 		}
-	}
-	
-	public void createFireElemental(int x, int y){
-		FireElemental fireElemental = new FireElemental(x,y);
-		fireElementals.add(fireElemental);
 	}
 	
 	public boolean isJump(){
@@ -290,9 +319,12 @@ public class GameEngine {
 		this.level = level;
 	}
 	
-	public void updateHighScore(int score){
-		if(score > myScoreData.getScore()){
-			myScoreData.setScore(score);
+	public void updateHighScore(String name, int score){
+		try {
+			scoreData.setHighscore(name, score);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
@@ -392,8 +424,6 @@ public class GameEngine {
 			}
 		}
 		
-		System.out.println(falling);
-		System.out.println(barrel.isFalling());
 		if(falling && !barrel.isFalling()){
 			if(barrel.continueFalling()){
 				barrel.setFalling(true);
@@ -511,6 +541,8 @@ public class GameEngine {
 			fireElemental.goUp();
 		}
 		
+		System.out.println(fireElemental.isGoingUp());
+		
 		collisionFireElementalAndPlayer(fireElemental);
 	}
 	
@@ -556,12 +588,17 @@ public class GameEngine {
 	//Collision
 	//If barrel hits oil barrel. We will remove it from the enemies arrayList then instead add a fire elemental.
 	public void collisionBarrelAndOil(Barrel barrel){
-		if(oil.getRectangle().intersects(barrel.getRectangle().getMinX(), barrel.getRectangle().getMinY(), 
-			barrel.getRectangle().getMaxX() - barrel.getRectangle().getMinX(), barrel.getRectangle().getMaxY() - barrel.getRectangle().getMinY())){
-			oil.setLit(true);
-			FireElemental fireElemental = new FireElemental(barrel.getX() / 50, barrel.getY() / 50);
-			fireElementals.add(fireElemental);
-			barrels.remove(barrel);
+		for(int i = 0; i < oils.size(); i ++){
+			Oil oil = oils.get(i);
+			if(oil.getRectangle().intersects(barrel.getRectangle().getMinX(), barrel.getRectangle().getMinY(), 
+				barrel.getRectangle().getMaxX() - barrel.getRectangle().getMinX(), barrel.getRectangle().getMaxY() - barrel.getRectangle().getMinY())){
+				for(int k = 0; k < oils.size(); k++){
+					oils.get(k).setLit(true);
+				}
+				FireElemental fireElemental = new FireElemental(barrel.getX() / 50, barrel.getY() / 50);
+				fireElementals.add(fireElemental);
+				barrels.remove(barrel);
+			}
 		}
 	}
 	
@@ -572,40 +609,43 @@ public class GameEngine {
 	 * I created a similar algorithm to use.
 	 */
 	public boolean fallBarrel(Barrel barrel){
-		if(!oil.getLit()){
-			return true;
-		}
-		else{
-			//Barrel checks whether player is climbing the exact same ladder
-			if(barrel.getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY() - 200,
-				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY() + 150)){
+		for(int i = 0; i < oils.size(); i ++){
+			Oil oil = oils.get(i);
+			if(!oil.getLit()){
 				return true;
 			}
-			else if(barrel.getDirection() == Direction.RIGHT){
-				if(player.getRectangle().intersects(barrel.getRectangle().getMinX(), barrel.getRectangle().getMinY() - 100, 
-					1000 - barrel.getRectangle().getMinX(), barrel.getRectangle().getMaxY() - barrel.getRectangle().getMinY() + 100)){
-					return false;
+			else{
+				//Barrel checks whether player is climbing the exact same ladder
+				if(barrel.getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY() - 200,
+					player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY() + 150)){
+					return true;
 				}
-				else{
-					if(Math.random() > 0.75 || Math.random() < 0.25){
+				else if(barrel.getDirection() == Direction.RIGHT){
+					if(player.getRectangle().intersects(barrel.getRectangle().getMinX(), barrel.getRectangle().getMinY() - 100, 
+						1000 - barrel.getRectangle().getMinX(), barrel.getRectangle().getMaxY() - barrel.getRectangle().getMinY() + 100)){
 						return false;
 					}
 					else{
-						return true;
+						if(Math.random() > 0.75 || Math.random() < 0.25){
+							return false;
+						}
+						else{
+							return true;
+						}
 					}
 				}
-			}
-			else if(barrel.getDirection() == Direction.LEFT){
-				if(player.getRectangle().intersects(0, barrel.getRectangle().getMinY() - 100, 
-					barrel.getRectangle().getMaxX(), barrel.getRectangle().getMaxY() - barrel.getRectangle().getMinY() + 100)){
-					return false;
-				}
-				else{
-					if(Math.random() > 0.75 || Math.random() < 0.25){
+				else if(barrel.getDirection() == Direction.LEFT){
+					if(player.getRectangle().intersects(0, barrel.getRectangle().getMinY() - 100, 
+						barrel.getRectangle().getMaxX(), barrel.getRectangle().getMaxY() - barrel.getRectangle().getMinY() + 100)){
 						return false;
 					}
 					else{
-						return true;
+						if(Math.random() > 0.75 || Math.random() < 0.25){
+							return false;
+						}
+						else{
+							return true;
+						}
 					}
 				}
 			}
@@ -626,7 +666,7 @@ public class GameEngine {
 			if(nonmovable.get(i).getRectangle().intersects(player.getRectangle().getMinX(), player.getRectangle().getMinY(),
 				player.getRectangle().getMaxX() - player.getRectangle().getMinX(), player.getRectangle().getMaxY() - player.getRectangle().getMinY())
 				&& nonmovable.get(i) instanceof Hammer){
-				player.setHammerUp(true);
+				player.setHammer(true);
 				nonmovable.remove(i);
 				break;
 			}
@@ -710,10 +750,50 @@ public class GameEngine {
 	//Checks whether or not we can create a new barrel
 	//This algorithm is important because it directly affect the gameplay.
 	public boolean creatable(long second){
+		//Barrel spawn timer
 		if(BARREL_SPAWN_TIMER < second){
 			return true;
 		}
 		return false;
+	}
+	
+	//Create animation for monkey
+	public boolean updateMonkeyTimer(long second){
+		if((BARREL_SPAWN_TIMER / MONKEY_ANIMATION_NUMBER) < second){
+			return true;
+		}
+		return false;
+	}
+	
+	public void updateMonkey(boolean firstBarrel){
+		if(!firstBarrel){
+			for(int i = 0; i < monkeys.size(); i++){
+				monkeys.get(i).animationMonkey();
+			}
+		}
+		else{
+			for(int i = 0; i < monkeys.size(); i++){
+				monkeys.get(i).animationFirstBarrelMonkey();
+			}
+		}
+	}
+	
+	//Create animation for oil and girl
+	public boolean updateObjectTimer(long second){
+		if(UPDATE_TIMER < second){
+			return true;
+		}
+		return false;
+	}
+	
+	public void updateObjects(){
+		for(int i = 0; i < oils.size(); i ++){
+			oils.get(i).animationOil();
+		}
+		
+		for(int i = 0; i < girls.size(); i++){
+			girls.get(i).animationGirl();
+		}
 	}
 	
 	public void aPressed(){
@@ -894,5 +974,9 @@ public class GameEngine {
 				break;
 			}
 		}
+	}
+	
+	public ArrayList<Oil> getOils(){
+		return oils;
 	}
 }

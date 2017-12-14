@@ -11,21 +11,23 @@ import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 
 public class Controller implements Runnable{
-	private final long FRAME_PER_SECOND = 1000 / 60; // 30 FPS
+	private final long FRAME_PER_SECOND = 1000 / 60; // 60 FPS
 	
 	private Thread myThread;
 	private GameEngine gameEngine;
 	private GamePanel gamePanel;
+	private GUIPanelManager guiPanelManager;
 	
 	private boolean buttonW, buttonA, buttonS, buttonD, buttonSpace = false;
 
-	public Controller(GamePanel gamePanel, GameEngine gameEngine) throws FileNotFoundException{
-		init(gamePanel, gameEngine);
+	public Controller(GamePanel gamePanel, GameEngine gameEngine, GUIPanelManager guiPanelManager) throws FileNotFoundException{
+		init(gamePanel, gameEngine, guiPanelManager);
 	}
 	
-	private void init(GamePanel gamePanel, GameEngine gameEngine) throws FileNotFoundException{
+	private void init(GamePanel gamePanel, GameEngine gameEngine, GUIPanelManager guiPanelManager) throws FileNotFoundException{
 		this.gamePanel = gamePanel;
 		this.gameEngine = gameEngine;
+		this.guiPanelManager = guiPanelManager;
 		
 		/*
 		 * initializeKeyBindings() decides which keyboard inputs we are going to use and as in the name initialize them
@@ -43,7 +45,11 @@ public class Controller implements Runnable{
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-		long second = 0; //Important for calculating the last time a new barrel has spawned
+		boolean firstBarrel = true;
+		//int firstBarrelCount = 0;
+		long secondBarrel = 0; //Important for calculating the last time a new barrel has spawned
+		long secondObject = 0; //Used for update girl and oil animation
+		long secondMonkey = 0; //Used for update monkey animation
 		while(!gameEngine.isGameOver()){ //While game is not over
 			if(gameEngine.isMovement()){ //While game is running
 				//Update
@@ -74,9 +80,40 @@ public class Controller implements Runnable{
 				gameEngine.gravity();
 				
 				//Create a new enemy barrel
-				if(gameEngine.creatable(second)){
+				if(gameEngine.creatable(secondBarrel)){
 					gameEngine.createBarrel(gameEngine.getBarrelSpawnX(), gameEngine.getBarrelSpawnY(), gameEngine.rollEnemyType());
-					second = 0;
+					secondBarrel = 0;
+				}
+				
+				//Notify monkey to change their animations
+				if(gameEngine.updateMonkeyTimer(secondMonkey) && !firstBarrel){
+					gameEngine.updateMonkey(firstBarrel);
+					secondMonkey = 0;
+				}
+				/*
+				else if(gameEngine.updateMonkeyTimer(secondMonkey)){
+					gameEngine.updateMonkey(firstBarrel);
+					firstBarrelCount++;
+					
+					if(firstBarrelCount == 2){
+						firstBarrel = false;
+						secondBarrel = 0;
+					}
+					secondMonkey = 0;
+				}
+				*/
+				
+				//Notify each object to change their animations
+				if(gameEngine.updateObjectTimer(secondObject)){
+					gameEngine.updateObjects();
+					secondObject = 0;
+				}
+				
+				//Load next level or return back to menu
+				if(gameEngine.collisionWithFinishPoint()){
+					if(!gameEngine.loadNextLevel(gameEngine.getLevel() + 1)){
+						setMainMenuPanelVisible();
+					}
 				}
 				
 				for(int i = 0; i < gameEngine.getBarrelList().size(); i++){
@@ -87,14 +124,17 @@ public class Controller implements Runnable{
 					gameEngine.moveFireElemental(gameEngine.getFireElementalList().get(i));
 				}
 				
-				if(gameEngine.getRemainingLives() == 0){
-					stop();
-				}
-				
 				gameEngine.collisionBarrelAndFireElemental(gameEngine.getBarrelList(), gameEngine.getFireElementalList());
+				
+				gameEngine.collisionHammerAndPlayer();
 				
 				//Display
 				gamePanel.notified(gameEngine.getMapObjects(), gameEngine.getBarrelList(), gameEngine.getFireElementalList(), gameEngine.getPlayer());
+				
+				if(gameEngine.getRemainingLives() == 0){
+					gameEngine.setGameOver(true);
+					gameEngine.setMovement(false);
+				}
 			}
 			else if(!gameEngine.isMovement()){ //While game is paused
 				//Bug fix
@@ -114,12 +154,12 @@ public class Controller implements Runnable{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			second = second + FRAME_PER_SECOND;
-			System.out.println("Score: " + gameEngine.getScore());
-			System.out.println("Lives: " + gameEngine.getRemainingLives());
+			secondBarrel = secondBarrel + FRAME_PER_SECOND;
+			secondObject = secondObject + FRAME_PER_SECOND;
+			secondMonkey = secondMonkey + FRAME_PER_SECOND;
 		}
 		//Go back to main menu
-		gamePanel.goBackToMainMenu();
+		setMainMenuPanelVisible();
 	}
 	
 	public void initializingKeyBindings(GamePanel gamePanel){
@@ -247,7 +287,6 @@ public class Controller implements Runnable{
 			}
 			
 		}
-		
 	}
 	
 	private void start(){
@@ -263,8 +302,7 @@ public class Controller implements Runnable{
 		gameEngine.setMovement(true);
 	}
 	
-	private void stop(){
-		gameEngine.setGameOver(true);
-		gameEngine.setMovement(false);
+	private void setMainMenuPanelVisible(){
+		guiPanelManager.setMainMenuPanelVisible();
 	}
 }
