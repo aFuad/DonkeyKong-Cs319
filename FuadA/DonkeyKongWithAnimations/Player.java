@@ -192,9 +192,8 @@ public class Player extends MyObject implements Movable{
 		}
 		
 	}
-	@Override
-	public Image getImage() {
-		// TODO Auto-generated method stub
+	
+	public void animation(){
 		animationx();
 		if(getClimbEnd()==false){
 			animationClimb();
@@ -205,8 +204,13 @@ public class Player extends MyObject implements Movable{
 		}
 		animationJump();
 		
+	}
+	@Override
+	public Image getImage() {
+		// TODO Auto-generated method stub
 		
-
+		
+		animation();
 		return img;
 	}
 
