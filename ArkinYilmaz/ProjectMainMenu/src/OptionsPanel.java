@@ -1,3 +1,4 @@
+package source;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -10,6 +11,8 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
+
+import source.MainMenu.KeyHandler;
 
 
 @SuppressWarnings("serial")
@@ -75,14 +78,14 @@ public class OptionsPanel extends JPanel{
 		InputMap inputMapPause = this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 		ActionMap actionMapPause = this.getActionMap();
 		
-		inputMapPause.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, true), "enterPressed");
-		actionMapPause.put("enterPressed", new KeyHandler("enter"));
+		inputMapPause.put(KeyStroke.getKeyStroke("released ENTER"), "enterReleased");
+		actionMapPause.put("enterReleased", new KeyHandler("enter"));
 		
-		inputMapPause.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0, true), "upPressed");
-		actionMapPause.put("upPressed", new KeyHandler("up"));
+		inputMapPause.put(KeyStroke.getKeyStroke("W"), "wPressed");
+		actionMapPause.put("wPressed", new KeyHandler("w"));
 		
-		inputMapPause.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0, true), "downPressed");
-		actionMapPause.put("downPressed", new KeyHandler("down"));
+		inputMapPause.put(KeyStroke.getKeyStroke("S"), "sPressed");
+		actionMapPause.put("sPressed", new KeyHandler("s"));
 		
 	}
 	
@@ -111,9 +114,11 @@ public class OptionsPanel extends JPanel{
 				}
 				else if(currentOption == 1) {
 					System.out.println("Help pressed");
+					guiManager.setHelpPanelVisible();
 				}
 				else if(currentOption == 2) {
 					System.out.println("Show credits pressed");
+					guiManager.setCreditsPanelVisible();
 				}
 				else if(currentOption == 3) {
 					System.out.println("Return(Options) pressed");
@@ -121,7 +126,7 @@ public class OptionsPanel extends JPanel{
 				}
 			}
 			
-			else if(name == "up") {
+			else if(name == "w") {
 				currentOption--;
 	        	
 	        	if(currentOption == 0) {
@@ -152,7 +157,7 @@ public class OptionsPanel extends JPanel{
         		}
 			}
 			
-			else if(name == "down") {
+			else if(name == "s") {
 				currentOption++;
 	        	
 	        	if(currentOption == 0) {
