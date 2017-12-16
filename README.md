@@ -29,3 +29,7 @@ about original Donkey Kong can be found in the following link:
 Analysis Report :white_check_mark:
 
 Design Report :white_check_mark:
+
+Final Report :white_check_mark:
+
+:monkey_face::monkey_face::monkey_face::monkey_face::monkey_face::monkey_face::monkey_face::monkey_face::monkey_face::monkey_face::monkey_face::monkey_face::monkey_face::monkey_face::monkey_face::monkey_face:
