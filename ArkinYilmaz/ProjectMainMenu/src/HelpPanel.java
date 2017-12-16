@@ -1,28 +1,90 @@
 package source;
+import java.net.*;
+import java.io.*;
+import java.awt.Toolkit;
 
-import java.awt.Color;
-import java.awt.Font;
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.image.BufferedImage;
 
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.KeyStroke;
 
 public class HelpPanel extends JPanel{
 	
 	private GUIPanelManager guiManager;
 	private JLabel returnLabel, helpLeftRight, helpUpDown, helpJump, helpSmashHammer, helpPause, tips;
 	private int currentOption = 0;
-	
+	private UnlockData unlockData;
+	private int unlock = 3;
+	private JLabel label1, label2, label3, label4, label5;
+	private BufferedImage label1img, label2img, label3img, label4img, label5img;
 	public HelpPanel(GUIPanelManager guiManager) {
 		
 		initializeKeyBindings();
 		this.guiManager = guiManager;
 		currentOption = 0;
+		try {
+			this.unlockData = new UnlockData();
+			unlock = unlockData.getUnlock();
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			guiManager.setMainMenuPanelVisible();
+		}
+		
+		currentOption = 0;
+		
+		initializeKeyBindings();
+
+		try {
+			label1img = ImageIO.read(new File("src/image/a.png"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		label1 = new JLabel(new ImageIcon(label1img));
+		label1.setSize(500, 500);
+		label1.setLocation(240, 260);
+		add(label1);
+		
+		try {
+			label2img = ImageIO.read(new File("src/image/b.png"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		label2 = new JLabel(new ImageIcon(label2img));
+		label2.setSize(500, 500);
+		label2.setLocation(240, 250);
+		add(label2);
+		
+		try {
+			label3img = ImageIO.read(new File("src/image/c.png"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		label3 = new JLabel(new ImageIcon(label3img));
+		label3.setSize(600, 600);
+		label3.setLocation(200, 200);
+		add(label3);
+		
+		try {
+			label4img = ImageIO.read(new File("src/image/d.png"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		label4 = new JLabel(new ImageIcon(label4img));
+		label4.setSize(600, 600);
+		label4.setLocation(200, 200);
+		add(label4);
+		
+		try {
+			label5img = ImageIO.read(new File("src/image/e.png"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		label5 = new JLabel(new ImageIcon(label5img));
+		label5.setSize(500, 500);
+		label5.setLocation(240, 240);
+		add(label5);
 		
 		helpLeftRight = new JLabel("<html><p>PRESS A AND D TO MOVE LEFT OR RIGHT</p></html>");
 		helpLeftRight.setForeground(MainMenu.strColor);
@@ -31,6 +93,7 @@ public class HelpPanel extends JPanel{
 		helpLeftRight.setLocation(100, 80);
 		add(helpLeftRight);
 		
+
 		helpUpDown = new JLabel("<html><p>PRESS W AND S TO CLIMB UP OR DOWN A LADDER</p></html>");
 		helpUpDown.setForeground(MainMenu.strColor);
 		helpUpDown.setFont(new Font("Press Start 2P", Font.BOLD,50));
@@ -79,6 +142,11 @@ public class HelpPanel extends JPanel{
 		helpSmashHammer.setVisible(false);
 		helpPause.setVisible(false);
 		returnLabel.setVisible(true);
+		label1.setVisible(true);
+		label2.setVisible(false);
+		label3.setVisible(false);
+		label4.setVisible(false);
+		label5.setVisible(false);
 		
 		
 		setBackground(Color.BLACK);
@@ -115,8 +183,8 @@ public class HelpPanel extends JPanel{
 			}
 			
 			else if(name == "a") {
-				if(currentOption > 5)
-					currentOption = 5;
+				if(currentOption > 4)
+					currentOption = 4;
 				
 				currentOption--;
 				if(currentOption == 0) {
@@ -126,7 +194,12 @@ public class HelpPanel extends JPanel{
 					helpSmashHammer.setVisible(false);
 					helpPause.setVisible(false);
 					returnLabel.setVisible(true);
-					
+					label1.setVisible(true);
+					label2.setVisible(false);
+					label3.setVisible(false);
+					label4.setVisible(false);
+					label5.setVisible(false);
+	
 				}
 				else if(currentOption == 1) {
 					helpLeftRight.setVisible(false);
@@ -135,6 +208,11 @@ public class HelpPanel extends JPanel{
 					helpSmashHammer.setVisible(false);
 					helpPause.setVisible(false);
 					returnLabel.setVisible(true);
+					label1.setVisible(false);
+					label2.setVisible(true);
+					label3.setVisible(false);
+					label4.setVisible(false);
+					label5.setVisible(false);
 				}
 				else if(currentOption == 2) {
 					helpLeftRight.setVisible(false);
@@ -143,6 +221,11 @@ public class HelpPanel extends JPanel{
 					helpSmashHammer.setVisible(false);
 					helpPause.setVisible(false);
 					returnLabel.setVisible(true);
+					label1.setVisible(false);
+					label2.setVisible(false);
+					label3.setVisible(true);
+					label4.setVisible(false);
+					label5.setVisible(false);
 				}
 				else if(currentOption == 3) {
 					helpLeftRight.setVisible(false);
@@ -151,6 +234,11 @@ public class HelpPanel extends JPanel{
 					helpSmashHammer.setVisible(true);
 					helpPause.setVisible(false);
 					returnLabel.setVisible(true);
+					label1.setVisible(false);
+					label2.setVisible(false);
+					label3.setVisible(false);
+					label4.setVisible(true);
+					label5.setVisible(false);
 				}
 				else if(currentOption == 4) {
 					helpLeftRight.setVisible(false);
@@ -159,16 +247,12 @@ public class HelpPanel extends JPanel{
 					helpSmashHammer.setVisible(false);
 					helpPause.setVisible(true);
 					returnLabel.setVisible(true);
+					label1.setVisible(false);
+					label2.setVisible(false);
+					label3.setVisible(false);
+					label4.setVisible(false);
+					label5.setVisible(true);
 				}
-				else if(currentOption == 5) {
-					helpLeftRight.setVisible(false);
-					helpUpDown.setVisible(false);
-					helpJump.setVisible(false);
-					helpSmashHammer.setVisible(false);
-					helpPause.setVisible(false);
-					returnLabel.setVisible(true);
-				}
-				
 			}
 			
 			else if(name == "d") {
@@ -183,7 +267,11 @@ public class HelpPanel extends JPanel{
 					helpSmashHammer.setVisible(false);
 					helpPause.setVisible(false);
 					returnLabel.setVisible(true);
-					
+					label1.setVisible(true);
+					label2.setVisible(false);
+					label3.setVisible(false);
+					label4.setVisible(false);
+					label5.setVisible(false);
 				}
 				else if(currentOption == 1) {
 					helpLeftRight.setVisible(false);
@@ -192,6 +280,11 @@ public class HelpPanel extends JPanel{
 					helpSmashHammer.setVisible(false);
 					helpPause.setVisible(false);
 					returnLabel.setVisible(true);
+					label1.setVisible(false);
+					label2.setVisible(true);
+					label3.setVisible(false);
+					label4.setVisible(false);
+					label5.setVisible(false);
 				}
 				else if(currentOption == 2) {
 					helpLeftRight.setVisible(false);
@@ -200,6 +293,11 @@ public class HelpPanel extends JPanel{
 					helpSmashHammer.setVisible(false);
 					helpPause.setVisible(false);
 					returnLabel.setVisible(true);
+					label1.setVisible(false);
+					label2.setVisible(false);
+					label3.setVisible(true);
+					label4.setVisible(false);
+					label5.setVisible(false);
 				}
 				else if(currentOption == 3) {
 					helpLeftRight.setVisible(false);
@@ -208,6 +306,11 @@ public class HelpPanel extends JPanel{
 					helpSmashHammer.setVisible(true);
 					helpPause.setVisible(false);
 					returnLabel.setVisible(true);
+					label1.setVisible(false);
+					label2.setVisible(false);
+					label3.setVisible(false);
+					label4.setVisible(true);
+					label5.setVisible(false);
 				}
 				else if(currentOption == 4) {
 					helpLeftRight.setVisible(false);
@@ -216,16 +319,14 @@ public class HelpPanel extends JPanel{
 					helpSmashHammer.setVisible(false);
 					helpPause.setVisible(true);
 					returnLabel.setVisible(true);
-				}
-				else if(currentOption == 5) {
-					helpLeftRight.setVisible(false);
-					helpUpDown.setVisible(false);
-					helpJump.setVisible(false);
-					helpSmashHammer.setVisible(false);
-					helpPause.setVisible(false);
-					returnLabel.setVisible(true);
+					label1.setVisible(false);
+					label2.setVisible(false);
+					label3.setVisible(false);
+					label4.setVisible(false);
+					label5.setVisible(true);
 				}
 			}
 		}
 	}
+	
 }
