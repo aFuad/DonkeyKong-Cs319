@@ -4,19 +4,12 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
-import java.awt.event.ActionEvent;
-import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
 import javax.swing.ImageIcon;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.KeyStroke;
 
 import source.model.Barrel;
 import source.model.FireElemental;
@@ -27,6 +20,7 @@ import source.model.Oil;
 import source.model.Player;
 import source.model.Direction;
 
+@SuppressWarnings("serial")
 public class GamePanel extends JPanel{
 	private GUIPanelManager guiPanelManager;
 	
@@ -47,8 +41,6 @@ public class GamePanel extends JPanel{
 		
 		scoreLabel = new JLabel();
 		pauseLabel = new JLabel();
-		
-		
 		
 		setPause(false);
 		
@@ -98,6 +90,7 @@ public class GamePanel extends JPanel{
 		
 		pauseLabel.setVisible(false);
 		
+		try{
 		for(int i = 0; i < remainingLife; i++) {
 			g.drawImage(heart, 750 + (i * 50), 40, this);
 		}
@@ -132,7 +125,6 @@ public class GamePanel extends JPanel{
 		
 		for(int i = 0; i < barrels.size(); i++){
 			g.drawImage(barrels.get(i).getImage(), barrels.get(i).getX(), barrels.get(i).getY(), this);
-			g.drawRect((int)(barrels.get(i).getRectangle().getMinX()), (int)(barrels.get(i).getRectangle().getMinY()), (int)(barrels.get(i).getRectangle().getMaxX() - barrels.get(i).getRectangle().getMinX()), (int)(barrels.get(i).getRectangle().getMaxY() - barrels.get(i).getRectangle().getMinY()));
 		}
 		
 		for(int i = 0; i < fireElementals.size(); i++){
@@ -154,6 +146,9 @@ public class GamePanel extends JPanel{
 		}
 		else{
 			g.drawImage(player.getImage(), player.getX(), player.getY(), this);
+		}
+		}
+		catch(Exception e){
 		}
 		
 		if(pause){
