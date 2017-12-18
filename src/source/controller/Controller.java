@@ -2,8 +2,6 @@ package source.controller;
 
 import java.awt.event.ActionEvent;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
@@ -50,7 +48,6 @@ public class Controller implements Runnable{
 	
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
 		long secondBarrel = 0; //Important for calculating the last time a new barrel has spawned
 		long secondObject = 0; //Used for update girl and oil animation
 		long secondMonkey = 0; //Used for update monkey animation
@@ -58,6 +55,9 @@ public class Controller implements Runnable{
 		while(!gameEngine.isGameOver()){ //While game is not over
 			gamePanel.setPause(false);
 			if(gameEngine.isMovement()){ //While game is running
+				//Display
+				gamePanel.notified(gameEngine.getMapObjects(), gameEngine.getBarrelList(), gameEngine.getFireElementalList(), gameEngine.getPlayer(), gameEngine.getScore() + gameEngine.getTotalScore(), gameEngine.getRemainingLives());
+				
 				//Update
 				//Keybindings boolean values
 				if(buttonW){
@@ -153,9 +153,6 @@ public class Controller implements Runnable{
 				
 				gameEngine.collisionExtraLifeAndPlayer();
 				
-				//Display
-				gamePanel.notified(gameEngine.getMapObjects(), gameEngine.getBarrelList(), gameEngine.getFireElementalList(), gameEngine.getPlayer(), gameEngine.getScore() + gameEngine.getTotalScore(), gameEngine.getRemainingLives());
-				
 				if(gameEngine.getRemainingLives() == 0){
 					gameEngine.setGameOver(true);
 					gameEngine.setMovement(false);
@@ -182,7 +179,6 @@ public class Controller implements Runnable{
 				Thread.sleep(FRAME_PER_SECOND);
 			}
 			catch (InterruptedException e){
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			secondBarrel = secondBarrel + FRAME_PER_SECOND;
@@ -253,6 +249,7 @@ public class Controller implements Runnable{
 	}
 	
 	//Nested class to implement KeyBindings
+	@SuppressWarnings("serial")
 	class KeyHandler extends AbstractAction{
 		String name;
 		
@@ -262,7 +259,6 @@ public class Controller implements Runnable{
 		
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			// TODO Auto-generated method stub
 			if(name == "escape"){
 				if(gameEngine.isMovement()){ //While game is running
 					pause();
